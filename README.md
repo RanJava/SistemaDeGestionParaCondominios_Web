@@ -1,1 +1,1 @@
-# SistemaDeGestionDeCondominios_Web
+# SistemaDeAdministraciónParaCondominios_Web
