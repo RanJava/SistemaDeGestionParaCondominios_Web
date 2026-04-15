@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="CondoAdmin.API/CondoAdmin.API.csproj" />
+  <Project Path="CondoAdmin.Application/CondoAdmin.Application.csproj" />
+  <Project Path="CondoAdmin.Domain/CondoAdmin.Domain.csproj" />
+  <Project Path="CondoAdmin.Infrastructure/CondoAdmin.Infrastructure.csproj" />
+</Solution>

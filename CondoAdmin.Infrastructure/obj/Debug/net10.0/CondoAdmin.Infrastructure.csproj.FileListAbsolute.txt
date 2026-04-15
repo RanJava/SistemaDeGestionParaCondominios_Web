@@ -1,0 +1,38 @@
+D:\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Infrastructure.deps.json
+D:\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Infrastructure.runtimeconfig.json
+D:\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Infrastructure.dll
+D:\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Infrastructure.pdb
+D:\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Application.dll
+D:\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Domain.dll
+D:\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Application.pdb
+D:\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Domain.pdb
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.csproj.AssemblyReference.cache
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.AssemblyInfoInputs.cache
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.AssemblyInfo.cs
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.csproj.CoreCompileInputs.cache
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdm.9E3C0210.Up2Date
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.dll
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\refint\CondoAdmin.Infrastructure.dll
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.pdb
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.genruntimeconfig.cache
+D:\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\ref\CondoAdmin.Infrastructure.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Infrastructure.deps.json
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Infrastructure.runtimeconfig.json
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Infrastructure.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Infrastructure.pdb
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Application.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Domain.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Application.pdb
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\bin\Debug\net10.0\CondoAdmin.Domain.pdb
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.csproj.AssemblyReference.cache
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.AssemblyInfoInputs.cache
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.AssemblyInfo.cs
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.csproj.CoreCompileInputs.cache
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdm.9E3C0210.Up2Date
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\refint\CondoAdmin.Infrastructure.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.pdb
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.genruntimeconfig.cache
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\ref\CondoAdmin.Infrastructure.dll
