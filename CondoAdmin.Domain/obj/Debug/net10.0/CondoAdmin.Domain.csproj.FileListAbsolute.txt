@@ -20,3 +20,4 @@ D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Domain
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Domain\obj\Debug\net10.0\refint\CondoAdmin.Domain.dll
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Domain\obj\Debug\net10.0\CondoAdmin.Domain.pdb
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Domain\obj\Debug\net10.0\ref\CondoAdmin.Domain.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Domain\obj\Debug\net10.0\CondoAdmin.Domain.sourcelink.json

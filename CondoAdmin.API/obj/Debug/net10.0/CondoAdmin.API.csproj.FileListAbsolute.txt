@@ -330,3 +330,4 @@ D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.API\ob
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.API\obj\Debug\net10.0\CondoAdmin.API.pdb
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.API\obj\Debug\net10.0\CondoAdmin.API.genruntimeconfig.cache
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.API\obj\Debug\net10.0\ref\CondoAdmin.API.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.API\obj\Debug\net10.0\CondoAdmin.API.sourcelink.json

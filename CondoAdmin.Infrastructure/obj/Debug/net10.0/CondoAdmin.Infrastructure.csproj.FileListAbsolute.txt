@@ -36,3 +36,4 @@ D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infras
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.pdb
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.genruntimeconfig.cache
 D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\ref\CondoAdmin.Infrastructure.dll
+D:\UPDS\SEMESTRE V\ProgramacionWebI\CondoAdmin\programacionweb\CondoAdmin.Infrastructure\obj\Debug\net10.0\CondoAdmin.Infrastructure.sourcelink.json
