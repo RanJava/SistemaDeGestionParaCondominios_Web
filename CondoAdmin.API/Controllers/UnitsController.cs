@@ -1,85 +1,86 @@
 using CondoAdmin.Domain.Entities;
 using CondoAdmin.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace ResidentBuilding.Controllers
+namespace CondoAdmin.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class UnitsController : ControllerBase
+    public class UnitController : ControllerBase
     {
         private readonly AppDbContext _contexto;
 
-        //Constructor
-        public UnitsController(AppDbContext contexto)
+        public UnitController(AppDbContext contexto)
         {
             _contexto = contexto;
         }
 
-        // GET: api/clientes
+        // GET: api/unit
         [HttpGet]
-        public async Task<ActionResult<ICollection<Resident>>> GetResident()
+        public async Task<ActionResult<ICollection<Unit>>> GetUnits()
         {
-            var residents = await _contexto.Residents.ToListAsync();
-            return Ok(residents);
+            var units = await _contexto.Units
+                .Include(u => u.Building)
+                .ToListAsync();
+            return Ok(units);
         }
 
-        // GET: api/clientes/{id}
+        // GET: api/unit/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Resident>> GetResident(int id)
+        public async Task<ActionResult<Unit>> GetUnit(int id)
         {
-            var resident = await _contexto.Residents.FindAsync(id);
+            var unit = await _contexto.Units
+                .Include(u => u.Building)
+                .FirstOrDefaultAsync(u => u.Id == id);
 
-            if (resident == null)
+            if (unit == null)
                 return NotFound();
 
-            return Ok(resident);
+            return Ok(unit);
         }
 
-        // POST: api/clientes
+        // POST: api/unit
         [HttpPost]
-        public async Task<ActionResult<Resident>> CreateResident([FromBody] Resident cliente)
+        public async Task<ActionResult<Unit>> CreateUnit([FromBody] Unit unit)
         {
-            _contexto.Residents.Add(cliente);
+            _contexto.Units.Add(unit);
             await _contexto.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetResident), new { id = cliente.Id }, cliente);
+            return CreatedAtAction(nameof(GetUnit), new { id = unit.Id }, unit);
         }
 
-        // PUT: api/clientes/{id}
+        // PUT: api/unit/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateResident(int id, [FromBody] Resident resident)
+        public async Task<IActionResult> UpdateUnit(int id, [FromBody] Unit unit)
         {
-            if (id != resident.Id)
-                return BadRequest("El ID no coincide con del residente enviado.");
+            if (id != unit.Id)
+                return BadRequest("El ID no coincide con la unidad enviada.");
 
-            var existing = await _contexto.Residents.FindAsync(id);
+            var existing = await _contexto.Units.FindAsync(id);
             if (existing == null)
                 return NotFound();
 
-            // Actualizar propiedades
-            existing.FirstName = resident.FirstName;
-            existing.LastName = resident.LastName;
-            existing.Email = resident.Email;
-            existing.Phone = resident.Phone;
-            existing.DNI = resident.DNI;
-            existing.IsActive = resident.IsActive;
+            existing.UnitNumber  = unit.UnitNumber;
+            existing.Floor       = unit.Floor;
+            existing.AreaM2      = unit.AreaM2;
+            existing.MonthlyFee  = unit.MonthlyFee;
+            existing.Status      = unit.Status;
+            existing.BuildingId  = unit.BuildingId;
 
             await _contexto.SaveChangesAsync();
             return NoContent();
         }
 
-        // DELETE: api/clientes/{id}
+        // DELETE: api/unit/{id}
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResident(int id)
+        public async Task<IActionResult> DeleteUnit(int id)
         {
-            var cliente = await _contexto.Residents.FindAsync(id);
-            if (cliente == null)
+            var unit = await _contexto.Units.FindAsync(id);
+            if (unit == null)
                 return NotFound();
 
-            _contexto.Residents.Remove(cliente);
+            _contexto.Units.Remove(unit);
             await _contexto.SaveChangesAsync();
             return NoContent();
         }

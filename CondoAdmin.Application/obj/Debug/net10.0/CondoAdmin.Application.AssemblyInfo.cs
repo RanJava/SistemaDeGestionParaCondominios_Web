@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CondoAdmin.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7fb887d0b5a1010a3490dd33cb4465c87ee74e87")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bf0a85ff5a6d37d8ec93ebf59cb1c4ef7c78af00")]
 [assembly: System.Reflection.AssemblyProductAttribute("CondoAdmin.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CondoAdmin.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
