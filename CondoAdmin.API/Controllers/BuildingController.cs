@@ -62,6 +62,7 @@ namespace CondoAdmin.API.Controllers
                 Name = input.Name,
                 Address = input.Address,
                 City = input.City,
+                TotalUnits = input.TotalUnits,
             };
             return CreatedAtAction(nameof(GetBuildings), new { id = building.Id }, output);
         }

@@ -8,4 +8,6 @@ public class AddBuildingOutput
     public required string Name { get; set; }
     public required string Address { get; set; }
     public required string City { get; set; }
+     public int TotalUnits { get; set; }
+
 }
