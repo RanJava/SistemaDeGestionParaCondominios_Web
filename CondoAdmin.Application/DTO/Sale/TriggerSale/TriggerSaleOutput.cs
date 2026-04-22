@@ -13,8 +13,11 @@ public class TriggerSaleOutput
 public class SaleDetailOutput
 {
     public int SaleId { get; set; }
-    public string UnitNumber { get; set; } = string.Empty;
+    public string? UnitNumber { get; set; }
     public int Floor { get; set; }
     public decimal SalePrice { get; set; }
     public string? Notes { get; set; }
+
+        public required string NameBuilding {get; set;}
+
 }

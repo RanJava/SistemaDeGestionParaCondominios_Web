@@ -57,7 +57,7 @@ public class SalesController : BaseApiController
             {
                 SalePrice = item.Price,
                 MethodOfPayment = input.MethodOfPayment,
-                Notes = item.Notes
+                Notes = item.Notes,
             };
             sale.SaleDate = transactionDate;
             sale.ResidentId = resident.Id;
@@ -73,7 +73,8 @@ public class SalesController : BaseApiController
                 UnitNumber = unit.UnitNumber,
                 Floor = unit.Floor,
                 SalePrice = sale.SalePrice,
-                Notes = item.Notes
+                Notes = item.Notes,
+                NameBuilding = item.NameBuilding
             });
         }
         await _context.SaveChangesAsync();
