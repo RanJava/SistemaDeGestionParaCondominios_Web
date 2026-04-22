@@ -46,12 +46,15 @@ public class SalesController : BaseApiController
         foreach (var item in input.Details)
         {
             var unit = await _context.Units
+                .Include(u => u.Building)
                 .FirstOrDefaultAsync(u => u.UnitNumber == item.UnitNumber.Trim());
 
             if (unit is null)
                 return BadRequest($"La unidad '{item.UnitNumber}' no existe.");
             if (unit.Status == true)
                 return BadRequest($"La unidad '{item.UnitNumber}' ya fue vendida.");
+            if (unit.Building.Name.Trim().ToUpper() != item.NameBuilding.Trim().ToUpper())
+                return BadRequest($"La unidad '{item.UnitNumber}' no pertenece al edificio '{item.NameBuilding}'.");
 
             var sale = new Sale
             {
@@ -74,11 +77,10 @@ public class SalesController : BaseApiController
                 Floor = unit.Floor,
                 SalePrice = sale.SalePrice,
                 Notes = item.Notes,
-                NameBuilding = item.NameBuilding
+                NameBuilding = unit.Building.Name
             });
         }
         await _context.SaveChangesAsync();
-
 
         var output = new TriggerSaleOutput
         {
