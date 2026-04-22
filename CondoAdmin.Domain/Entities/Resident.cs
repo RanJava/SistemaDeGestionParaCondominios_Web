@@ -13,10 +13,10 @@ public class Resident
     public bool IsActive { get; set; } = true;
 
     // FK
-    public int UnitId { get; set; }
-    public Unit Unit { get; set; } = null!;
-    public ICollection<Sale> Sales { get; set; } = [];
+    public int? UnitId { get; set; }
+    public Unit? Unit { get; set; } = null!;
 
     // Navegación
     public ICollection<Payment> Payments { get; set; } = [];
+    public ICollection<Sale> Sales { get; set; } = [];
 }

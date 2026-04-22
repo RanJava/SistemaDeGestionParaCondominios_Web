@@ -83,16 +83,16 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
         modelBuilder.Entity<Sale>(e =>
         {
             e.HasKey(x => x.Id);
-            e.Property(x => x.SalePrice).HasColumnType("decimal(10,2)");
-            e.Property(x => x.Notes).HasMaxLength(500);
-            e.HasOne(x => x.Unit)
-             .WithMany(u => u.Sales)
-             .HasForeignKey(x => x.UnitId)
-             .OnDelete(DeleteBehavior.Restrict);
+            e.Property(x => x.SalePrice).HasColumnType("decimal(12,2)");
+            e.Property(x => x.MethodOfPayment).IsRequired().HasMaxLength(50);
             e.HasOne(x => x.Resident)
-             .WithMany(r => r.Sales)
-             .HasForeignKey(x => x.ResidentId)
-             .OnDelete(DeleteBehavior.Restrict);
+            .WithMany(r => r.Sales)
+            .HasForeignKey(x => x.ResidentId)
+            .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Unit)
+            .WithMany(u => u.Sales) // 👈
+            .HasForeignKey(x => x.UnitId)
+            .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

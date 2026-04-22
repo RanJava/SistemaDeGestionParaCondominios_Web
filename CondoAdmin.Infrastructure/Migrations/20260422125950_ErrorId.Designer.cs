@@ -4,6 +4,7 @@ using CondoAdmin.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CondoAdmin.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260422125950_ErrorId")]
+    partial class ErrorId
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -203,11 +206,16 @@ namespace CondoAdmin.Infrastructure.Migrations
                     b.Property<int>("UnitId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UnitId1")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ResidentId");
 
                     b.HasIndex("UnitId");
+
+                    b.HasIndex("UnitId1");
 
                     b.ToTable("Sales");
                 });
@@ -323,10 +331,14 @@ namespace CondoAdmin.Infrastructure.Migrations
                         .IsRequired();
 
                     b.HasOne("CondoAdmin.Domain.Entities.Unit", "Unit")
-                        .WithMany("Sales")
+                        .WithMany()
                         .HasForeignKey("UnitId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("CondoAdmin.Domain.Entities.Unit", null)
+                        .WithMany("Sales")
+                        .HasForeignKey("UnitId1");
 
                     b.Navigation("Resident");
 
