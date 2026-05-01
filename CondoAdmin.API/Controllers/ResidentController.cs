@@ -16,21 +16,31 @@ namespace CondoAdmin.API.Controllers
             _context = context;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<ICollection<Resident>>> GetResidents()
-        {
-            var residents = await _context.Residents.ToListAsync();
-            return Ok(residents);
-        }
+        // GET: api/resident
+[HttpGet]
+public async Task<ActionResult<ICollection<Resident>>> GetResidents()
+{
+    var residents = await _context.Residents
+        .Include(r => r.Unit)
+            .ThenInclude(u => u!.Building)
+        .ToListAsync();
+    return Ok(residents);
+}
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Resident>> GetResident(int id)
-        {
-            var resident = await _context.Residents.FindAsync(id);
-            if (resident == null)
-                return NotFound();
-            return Ok(resident);
-        }
+        // GET: api/resident/{id}
+[HttpGet("{id}")]
+public async Task<ActionResult<Resident>> GetResident(int id)
+{
+    var resident = await _context.Residents
+        .Include(r => r.Unit)
+            .ThenInclude(u => u!.Building)
+        .FirstOrDefaultAsync(r => r.Id == id);
+
+    if (resident == null)
+        return NotFound();
+
+    return Ok(resident);
+}
 
         [HttpPost]
         public async Task<ActionResult<Resident>> CreateResident([FromBody] Resident resident)
