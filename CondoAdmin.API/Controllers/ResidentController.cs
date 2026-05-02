@@ -1,3 +1,4 @@
+using CondoAdmin.Application.DTO.Residents.ListResident;
 using CondoAdmin.Domain.Entities;
 using CondoAdmin.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -70,6 +71,27 @@ public async Task<ActionResult<Resident>> GetResident(int id)
 
             await _context.SaveChangesAsync();
             return NoContent();
+        }
+
+        [HttpGet("by-building")]
+        public async Task<ActionResult<ICollection<ListResidentOutput>>> GetResidentsByBuilding([FromQuery] int buildingId)
+        {
+            var residents = await _context.Residents
+                .Include(r => r.Unit)
+                .Where(r => r.Unit != null && r.Unit.BuildingId == buildingId)
+                .Select(r => new ListResidentOutput
+                {
+                    Id         = r.Id,
+                    FullName   = $"{r.FirstName} {r.LastName}",
+                    DNI        = r.DNI,
+                    UnitNumber = r.Unit!.UnitNumber
+                })
+                .ToListAsync();
+
+            if (!residents.Any())
+                return NotFound($"No se encontraron residentes para el edificio con ID {buildingId}.");
+
+            return Ok(residents);
         }
 
     }
