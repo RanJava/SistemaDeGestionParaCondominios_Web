@@ -51,17 +51,5 @@ namespace CondoAdmin.API.Controllers
             return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, payment);
         }
 
-        // DELETE
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePayment(int id)
-        {
-            var payment = await _contexto.Payments.FindAsync(id);
-            if (payment == null)
-                return NotFound();
-
-            _contexto.Payments.Remove(payment);
-            await _contexto.SaveChangesAsync();
-            return NoContent();
-        }
     }
 }

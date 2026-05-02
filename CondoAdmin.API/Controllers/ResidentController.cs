@@ -72,16 +72,5 @@ public async Task<ActionResult<Resident>> GetResident(int id)
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteResident(int id)
-        {
-            var resident = await _context.Residents.FindAsync(id);
-            if (resident == null)
-                return NotFound();
-
-            _context.Residents.Remove(resident);
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
     }
 }
