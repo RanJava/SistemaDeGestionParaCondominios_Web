@@ -1,5 +1,8 @@
+using CondoAdmin.Application.DTO.Residents.CreateResident;
 using CondoAdmin.Application.DTO.Residents.ListResident;
+using CondoAdmin.Application.DTO.Residents.ListResidents;
 using CondoAdmin.Application.DTO.Residents.ListResidentsDebtor;
+using CondoAdmin.Application.DTO.Residents.UpdateResidentInput;
 using CondoAdmin.Domain.Entities;
 using CondoAdmin.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -7,9 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CondoAdmin.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ResidentController : ControllerBase
+    public class ResidentController : BaseApiController
     {
         private readonly AppDbContext _context;
 
@@ -18,69 +19,123 @@ namespace CondoAdmin.API.Controllers
             _context = context;
         }
 
-        // GET: api/resident
-[HttpGet]
-public async Task<ActionResult<ICollection<Resident>>> GetResidents()
-{
-    var residents = await _context.Residents
-        .Include(r => r.Unit)
-            .ThenInclude(u => u!.Building)
-        .ToListAsync();
-    return Ok(residents);
-}
-
-        // GET: api/resident/{id}
-[HttpGet("{id}")]
-public async Task<ActionResult<Resident>> GetResident(int id)
-{
-    var resident = await _context.Residents
-        .Include(r => r.Unit)
-            .ThenInclude(u => u!.Building)
-        .FirstOrDefaultAsync(r => r.Id == id);
-
-    if (resident == null)
-        return NotFound();
-
-    return Ok(resident);
-}
-
-        [HttpPost]
-        public async Task<ActionResult<Resident>> CreateResident([FromBody] Resident resident)
+        // GET
+        [HttpGet]
+        public async Task<ActionResult<ICollection<ListResidentsOutput>>> GetResidents()
         {
-            _context.Residents.Add(resident);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetResident), new { id = resident.Id }, resident);
+            var residents = await _context.Residents
+                .Include(r => r.Unit)
+                .Select(r => new ListResidentsOutput
+                {
+                    Id         = r.Id,
+                    FullName   = $"{r.FirstName} {r.LastName}",
+                    DNI        = r.DNI,
+                    Phone = r.Phone,
+                    Email = r.Email,
+                    UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad"
+                })
+                .ToListAsync();
+
+            return Ok(residents);
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateResident(int id, [FromBody] Resident resident)
+        // GET id
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ListResidentsOutput>> GetResident(int id)
         {
-            if (id != resident.Id)
-                return BadRequest("El ID no coincide con el residente enviado.");
+            var resident = await _context.Residents
+                .Include(r => r.Unit)
+                .Where(r => r.Id == id)
+                .Select(r => new ListResidentsOutput
+                {
+                    Id         = r.Id,
+                    FullName   = $"{r.FirstName} {r.LastName}",
+                    DNI        = r.DNI,
+                    Phone = r.Phone,
+                    Email = r.Email,
+                    UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad"
+                })
+                .FirstOrDefaultAsync();
 
+            if (resident == null)
+                return NotFound();
+
+            return Ok(resident);
+        }
+
+
+        [HttpPost]
+        public async Task<ActionResult<CreateResidentOutput>> CreateResident([FromBody] CreateResidentInput input)
+        {
+            var existeDNI = await _context.Residents.AnyAsync(r => r.DNI == input.DNI);
+            if (existeDNI)
+                return Conflict($"Ya existe un residente con el DNI {input.DNI}.");
+
+            var resident = new Resident
+            {
+                FirstName  = input.FirstName,
+                LastName   = input.LastName,
+                Email      = input.Email,
+                Phone      = input.Phone,
+                DNI        = input.DNI,
+                MoveInDate = input.MoveInDate,
+                UnitId     = input.UnitId,
+                IsActive   = true
+            };
+
+            _context.Residents.Add(resident);
+            await _context.SaveChangesAsync();
+
+            var unitNumber = "Sin unidad";
+            if (resident.UnitId != null)
+            {
+                var unit = await _context.Units.FindAsync(resident.UnitId);
+                unitNumber = unit?.UnitNumber ?? "Sin unidad";
+            }
+
+            var output = new CreateResidentOutput
+            {
+                Id         = resident.Id,
+                FullName   = $"{resident.FirstName} {resident.LastName}",
+                DNI        = resident.DNI,
+                UnitNumber = unitNumber,
+                MoveInDate = resident.MoveInDate
+            };
+
+            return CreatedAtAction(nameof(GetResident), new { id = resident.Id }, output);
+        }
+
+       [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateResident(int id, [FromBody] UpdateResidentInput input)
+        {
             var existing = await _context.Residents.FindAsync(id);
             if (existing == null)
                 return NotFound();
 
-            existing.FirstName = resident.FirstName;
-            existing.LastName  = resident.LastName;
-            existing.Email     = resident.Email;
-            existing.Phone     = resident.Phone;
-            existing.DNI       = resident.DNI;
-            existing.IsActive  = resident.IsActive;
-            existing.UnitId    = resident.UnitId;
+            var existeDNI = await _context.Residents
+                .AnyAsync(r => r.DNI == input.DNI && r.Id != id);
+            if (existeDNI)
+                return Conflict($"Ya existe otro residente con el DNI {input.DNI}.");
+
+            existing.FirstName = input.FirstName;
+            existing.LastName  = input.LastName;
+            existing.Email     = input.Email;
+            existing.Phone     = input.Phone;
+            existing.DNI       = input.DNI;
+            existing.IsActive  = input.IsActive;
+            existing.UnitId    = input.UnitId;
 
             await _context.SaveChangesAsync();
             return NoContent();
         }
 
         [HttpGet("by-building")]
-        public async Task<ActionResult<ICollection<ListResidentOutput>>> GetResidentsByBuilding([FromQuery] int buildingId)
+        public async Task<ActionResult<ICollection<ListResidentByBuildingsOutput>>> GetResidentsByBuilding([FromQuery] int buildingId)
         {
             var residents = await _context.Residents
                 .Include(r => r.Unit)
                 .Where(r => r.Unit != null && r.Unit.BuildingId == buildingId)
-                .Select(r => new ListResidentOutput
+                .Select(r => new ListResidentByBuildingsOutput
                 {
                     Id         = r.Id,
                     FullName   = $"{r.FirstName} {r.LastName}",

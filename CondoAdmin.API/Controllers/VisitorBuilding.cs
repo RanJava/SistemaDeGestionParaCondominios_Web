@@ -5,9 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CondoAdmin.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class VisitorController : ControllerBase
+    public class VisitorController : BaseApiController
     {
         private readonly AppDbContext _contexto;
 

@@ -1,38 +1,59 @@
 using CondoAdmin.Application.DTO.Building.AddBuilding;
+using CondoAdmin.Application.DTO.Building.ListBuilding;
+using CondoAdmin.Application.DTO.Building.UpdateBuilding;
 using CondoAdmin.Domain.Entities;
 using CondoAdmin.Infrastructure.Persistence;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace CondoAdmin.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class BuildingController : ControllerBase
+    public class BuildingController : BaseApiController
     {
         private readonly AppDbContext _contexto;
 
-        //Constructor
         public BuildingController(AppDbContext contexto)
         {
             _contexto = contexto;
         }
 
-        // GET: api/buildings
+        // GET: api/building
         [HttpGet]
-        public async Task<ActionResult<ICollection<Building>>> GetBuildings()
+        public async Task<ActionResult<ICollection<ListBuildingOutput>>> GetBuildings()
         {
-            var buildings = await _contexto.Buildings.ToListAsync();
+            var buildings = await _contexto.Buildings
+                .AsNoTracking()
+                .Select(b => new ListBuildingOutput
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Address = b.Address,
+                    City = b.City,
+                    TotalUnits = b.TotalUnits,
+                    IsActive = b.IsActive
+                })
+                .ToListAsync();
+
             return Ok(buildings);
         }
 
-        // GET: api/buildings/{id}
+        // GET: api/building/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Building>> GetBuildings(int id)
+        public async Task<ActionResult<ListBuildingOutput>> GetBuilding(int id)
         {
-            var building = await _contexto.Buildings.FindAsync(id);
+            var building = await _contexto.Buildings
+                .AsNoTracking()
+                .Where(b => b.Id == id)
+                .Select(b => new ListBuildingOutput
+                {
+                    Id = b.Id,
+                    Name = b.Name,
+                    Address = b.Address,
+                    City = b.City,
+                    TotalUnits = b.TotalUnits,
+                    IsActive = b.IsActive
+                })
+                .FirstOrDefaultAsync();
 
             if (building == null)
                 return NotFound();
@@ -40,52 +61,48 @@ namespace CondoAdmin.API.Controllers
             return Ok(building);
         }
 
-        // POST: api/buildings
+        // POST: api/building
         [HttpPost]
-        public async Task<ActionResult<AddBuildingOutput>> CreateBuildings([FromBody] AddBuildingInput building)
+        public async Task<ActionResult<AddBuildingOutput>> CreateBuilding([FromBody] AddBuildingInput input)
         {
-            var input = new Building
+            var building = new Building
             {
-                Name = building.Name,
-                Address = building.Address,
-                City = building.City,
+                Name = input.Name,
+                Address = input.Address,
+                City = input.City,
+                TotalUnits = 0,
+                CreatedAt = DateTime.Now,
+                IsActive = true
             };
-            input.CreatedAt = DateTime.Now;
-            input.IsActive = true;
 
-            _contexto.Buildings.Add(input);
+            _contexto.Buildings.Add(building);
             await _contexto.SaveChangesAsync();
 
             var output = new AddBuildingOutput
             {
-                Id = input.Id,
-                Name = input.Name,
-                Address = input.Address,
-                City = input.City,
-                TotalUnits = input.TotalUnits,
+                Id = building.Id,
+                Name = building.Name,
+                Address = building.Address,
+                City = building.City,
+                TotalUnits = building.TotalUnits
             };
-            return CreatedAtAction(nameof(GetBuildings), new { id = building.Id }, output);
+
+            return CreatedAtAction(nameof(GetBuilding), new { id = building.Id }, output);
         }
 
-        // PUT: api/buildings/{id}
+        // PUT: api/building/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateBuildings(int id, [FromBody] Building building)
+        public async Task<IActionResult> UpdateBuilding(int id, [FromBody] UpdateBuildingInput input)
         {
-            if (id != building.Id)
-                return BadRequest("El ID no coincide con el edificio enviado.");
-
             var existing = await _contexto.Buildings.FindAsync(id);
             if (existing == null)
                 return NotFound();
 
-            // Actualizar propiedades
-            existing.Name = building.Name;
-            existing.Address = building.Address;
-            existing.City = building.City;
-            existing.TotalUnits = building.TotalUnits;
-            existing.CreatedAt = building.CreatedAt;
-            existing.IsActive = building.IsActive;
-
+            existing.Name = input.Name;
+            existing.Address = input.Address;
+            existing.City = input.City;
+            existing.TotalUnits = input.TotalUnits;
+            existing.IsActive = input.IsActive;
 
             await _contexto.SaveChangesAsync();
             return NoContent();

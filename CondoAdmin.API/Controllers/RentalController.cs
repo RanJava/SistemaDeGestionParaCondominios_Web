@@ -15,8 +15,6 @@ namespace CondoAdmin.API.Controllers;
 /// Gestiona el ciclo de vida completo de los contratos de alquiler:
 /// creación, consulta, pagos (simples, múltiples, adelantados), renovación y terminación.
 /// </summary>
-[Route("api/[controller]")]
-[ApiController]
 public class RentalController : BaseApiController
 {
     private readonly AppDbContext _context;
