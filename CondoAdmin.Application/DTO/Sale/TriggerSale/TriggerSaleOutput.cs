@@ -2,9 +2,9 @@ namespace CondoAdmin.Application.DTO.Sale.TriggerSale;
 
 public class TriggerSaleOutput
 {
-    public string Buyer { get; set; } = string.Empty;
-    public string DNI { get; set; } = string.Empty;
-    public string MethodOfPayment { get; set; } = string.Empty;
+    public string? Buyer { get; set; } 
+    public string? DNI { get; set; }
+    public string? MethodOfPayment { get; set; }
     public DateTime SaleDate { get; set; }
     public decimal Total { get; set; }
     public List<SaleDetailOutput> Units { get; set; } = new();

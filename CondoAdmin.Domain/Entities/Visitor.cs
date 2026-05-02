@@ -6,7 +6,7 @@ public class Visitor
     public required string FullName { get; set; }
     public required string DNI { get; set; } 
     public string? LicensePlate { get; set; }
-    public DateTime EntryTime { get; set; } = DateTime.UtcNow;
+    public DateTime EntryTime { get; set; } 
     public DateTime? ExitTime { get; set; }
 
     // FK

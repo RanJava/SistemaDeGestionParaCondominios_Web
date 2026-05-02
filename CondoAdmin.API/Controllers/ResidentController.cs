@@ -1,4 +1,5 @@
 using CondoAdmin.Application.DTO.Residents.ListResident;
+using CondoAdmin.Application.DTO.Residents.ListResidentsDebtor;
 using CondoAdmin.Domain.Entities;
 using CondoAdmin.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -92,6 +93,36 @@ public async Task<ActionResult<Resident>> GetResident(int id)
                 return NotFound($"No se encontraron residentes para el edificio con ID {buildingId}.");
 
             return Ok(residents);
+        }
+
+        // GET: api/resident/debtors
+        [HttpGet("debtors")]
+        public async Task<ActionResult<ICollection<ListResidentsDebtorOutput>>> GetDebtors()
+        {
+            var today = DateTime.Today;
+
+            var debtors = await _context.Residents
+                .Include(r => r.Unit)
+                .Include(r => r.Payments)
+                .Where(r => r.Payments.Any(p => p.PaidAt == null && p.DueDate < today))
+                .Select(r => new ListResidentsDebtorOutput
+                {
+                    Id             = r.Id,
+                    FullName       = $"{r.FirstName} {r.LastName}",
+                    DNI            = r.DNI,
+                    UnitNumber     = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad",
+                    PendingPayments = r.Payments.Count(p => p.PaidAt == null && p.DueDate < today),
+                    TotalDebt      = r.Payments
+                                    .Where(p => p.PaidAt == null && p.DueDate < today)
+                                    .Sum(p => p.Amount)
+                })
+                .OrderByDescending(r => r.TotalDebt)
+                .ToListAsync();
+
+            if (!debtors.Any())
+                return NotFound("No se encontraron residentes morosos.");
+
+            return Ok(debtors);
         }
 
     }
