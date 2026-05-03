@@ -24,12 +24,11 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListResidentsOutput>>> GetResidents()
         {
             var residents = await _context.Residents
-                .Include(r => r.Unit)
                 .Select(r => new ListResidentsOutput
                 {
-                    Id         = r.Id,
-                    FullName   = $"{r.FirstName} {r.LastName}",
-                    DNI        = r.DNI,
+                    Id = r.Id,
+                    FullName = $"{r.FirstName} {r.LastName}",
+                    DNI = r.DNI,
                     Phone = r.Phone,
                     Email = r.Email,
                     UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad"
@@ -44,13 +43,12 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ListResidentsOutput>> GetResident(int id)
         {
             var resident = await _context.Residents
-                .Include(r => r.Unit)
                 .Where(r => r.Id == id)
                 .Select(r => new ListResidentsOutput
                 {
-                    Id         = r.Id,
-                    FullName   = $"{r.FirstName} {r.LastName}",
-                    DNI        = r.DNI,
+                    Id = r.Id,
+                    FullName = $"{r.FirstName} {r.LastName}",
+                    DNI = r.DNI,
                     Phone = r.Phone,
                     Email = r.Email,
                     UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad"
@@ -63,7 +61,6 @@ namespace CondoAdmin.API.Controllers
             return Ok(resident);
         }
 
-
         [HttpPost]
         public async Task<ActionResult<CreateResidentOutput>> CreateResident([FromBody] CreateResidentInput input)
         {
@@ -73,14 +70,14 @@ namespace CondoAdmin.API.Controllers
 
             var resident = new Resident
             {
-                FirstName  = input.FirstName,
-                LastName   = input.LastName,
-                Email      = input.Email,
-                Phone      = input.Phone,
-                DNI        = input.DNI,
+                FirstName = input.FirstName,
+                LastName = input.LastName,
+                Email = input.Email,
+                Phone = input.Phone,
+                DNI = input.DNI,
                 MoveInDate = input.MoveInDate,
-                UnitId     = input.UnitId,
-                IsActive   = true
+                UnitId = input.UnitId,
+                IsActive = true
             };
 
             _context.Residents.Add(resident);
@@ -95,9 +92,9 @@ namespace CondoAdmin.API.Controllers
 
             var output = new CreateResidentOutput
             {
-                Id         = resident.Id,
-                FullName   = $"{resident.FirstName} {resident.LastName}",
-                DNI        = resident.DNI,
+                Id = resident.Id,
+                FullName = $"{resident.FirstName} {resident.LastName}",
+                DNI = resident.DNI,
                 UnitNumber = unitNumber,
                 MoveInDate = resident.MoveInDate
             };
@@ -105,7 +102,7 @@ namespace CondoAdmin.API.Controllers
             return CreatedAtAction(nameof(GetResident), new { id = resident.Id }, output);
         }
 
-       [HttpPut("{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> UpdateResident(int id, [FromBody] UpdateResidentInput input)
         {
             var existing = await _context.Residents.FindAsync(id);
@@ -118,12 +115,12 @@ namespace CondoAdmin.API.Controllers
                 return Conflict($"Ya existe otro residente con el DNI {input.DNI}.");
 
             existing.FirstName = input.FirstName;
-            existing.LastName  = input.LastName;
-            existing.Email     = input.Email;
-            existing.Phone     = input.Phone;
-            existing.DNI       = input.DNI;
-            existing.IsActive  = input.IsActive;
-            existing.UnitId    = input.UnitId;
+            existing.LastName = input.LastName;
+            existing.Email = input.Email;
+            existing.Phone = input.Phone;
+            existing.DNI = input.DNI;
+            existing.IsActive = input.IsActive;
+            existing.UnitId = input.UnitId;
 
             await _context.SaveChangesAsync();
             return NoContent();
@@ -133,13 +130,12 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListResidentByBuildingsOutput>>> GetResidentsByBuilding([FromQuery] int buildingId)
         {
             var residents = await _context.Residents
-                .Include(r => r.Unit)
                 .Where(r => r.Unit != null && r.Unit.BuildingId == buildingId)
                 .Select(r => new ListResidentByBuildingsOutput
                 {
-                    Id         = r.Id,
-                    FullName   = $"{r.FirstName} {r.LastName}",
-                    DNI        = r.DNI,
+                    Id = r.Id,
+                    FullName = $"{r.FirstName} {r.LastName}",
+                    DNI = r.DNI,
                     UnitNumber = r.Unit!.UnitNumber
                 })
                 .ToListAsync();
@@ -157,19 +153,17 @@ namespace CondoAdmin.API.Controllers
             var today = DateTime.Today;
 
             var debtors = await _context.Residents
-                .Include(r => r.Unit)
-                .Include(r => r.Payments)
                 .Where(r => r.Payments.Any(p => p.PaidAt == null && p.DueDate < today))
                 .Select(r => new ListResidentsDebtorOutput
                 {
-                    Id             = r.Id,
-                    FullName       = $"{r.FirstName} {r.LastName}",
-                    DNI            = r.DNI,
-                    UnitNumber     = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad",
+                    Id = r.Id,
+                    FullName = $"{r.FirstName} {r.LastName}",
+                    DNI = r.DNI,
+                    UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad",
                     PendingPayments = r.Payments.Count(p => p.PaidAt == null && p.DueDate < today),
-                    TotalDebt      = r.Payments
-                                    .Where(p => p.PaidAt == null && p.DueDate < today)
-                                    .Sum(p => p.Amount)
+                    TotalDebt = r.Payments
+                        .Where(p => p.PaidAt == null && p.DueDate < today)
+                        .Sum(p => p.Amount)
                 })
                 .OrderByDescending(r => r.TotalDebt)
                 .ToListAsync();
@@ -180,5 +174,37 @@ namespace CondoAdmin.API.Controllers
             return Ok(debtors);
         }
 
+        // GET: api/resident/search
+        [HttpGet("search")]
+        public async Task<ActionResult<ICollection<ListResidentsOutput>>> SearchResidents(
+            [FromQuery] string? name,
+            [FromQuery] string? dni,
+            [FromQuery] bool? isActive)
+        {
+            var query = _context.Residents.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(name))
+                query = query.Where(r => (r.FirstName + " " + r.LastName).Contains(name));
+
+            if (!string.IsNullOrWhiteSpace(dni))
+                query = query.Where(r => r.DNI.Contains(dni));
+
+            if (isActive.HasValue)
+                query = query.Where(r => r.IsActive == isActive.Value);
+
+            var residents = await query
+                .Select(r => new ListResidentsOutput
+                {
+                    Id = r.Id,
+                    FullName = $"{r.FirstName} {r.LastName}",
+                    DNI = r.DNI,
+                    Phone = r.Phone,
+                    Email = r.Email,
+                    UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad"
+                })
+                .ToListAsync();
+
+            return Ok(residents);
+        }
     }
 }

@@ -167,5 +167,38 @@ namespace CondoAdmin.API.Controllers
                 ExitTime = existing.ExitTime
             });
         }
+
+        // GET: api/visitor/filter
+        [HttpGet("filter")]
+        public async Task<ActionResult<ICollection<ListVisitorOutput>>> FilterVisitors(
+        [FromQuery] int? unitId,
+        [FromQuery] bool? isInside)
+        {
+        var query = _contexto.Visitors.AsQueryable();
+
+        if (unitId.HasValue)
+            query = query.Where(v => v.UnitId == unitId.Value);
+
+        if (isInside.HasValue)
+            query = isInside.Value
+                ? query.Where(v => v.ExitTime == null)
+                : query.Where(v => v.ExitTime != null);
+
+        var visitors = await query
+            .AsNoTracking()
+            .Select(v => new ListVisitorOutput
+            {
+                Id = v.Id,
+                FullName = v.FullName,
+                DNI = v.DNI,
+                LicensePlate = v.LicensePlate,
+                UnitNumber = v.Unit.UnitNumber,
+                EntryTime = v.EntryTime,
+                ExitTime = v.ExitTime
+            })
+            .ToListAsync();
+
+        return Ok(visitors);
+        }
     }
 }

@@ -141,5 +141,41 @@ namespace CondoAdmin.API.Controllers
 
             return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, output);
         }
+
+        // GET: api/payment/filter
+        [HttpGet("filter")]
+        public async Task<ActionResult<ICollection<ListPaymentOutput>>> FilterPayments(
+            [FromQuery] int? residentId,
+            [FromQuery] bool? isPaid,
+            [FromQuery] string? month)
+        {
+            var query = _contexto.Payments.AsQueryable();
+
+            if (residentId.HasValue)
+                query = query.Where(p => p.ResidentId == residentId.Value);
+
+            if (isPaid.HasValue)
+                query = isPaid.Value
+                    ? query.Where(p => p.PaidAt != null)
+                    : query.Where(p => p.PaidAt == null);
+
+            if (!string.IsNullOrWhiteSpace(month))
+                query = query.Where(p => p.Month.Contains(month));
+
+            var payments = await query
+                .AsNoTracking()
+                .Select(p => new ListPaymentOutput
+                {
+                    Id = p.Id,
+                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
+                    Month = p.Month,
+                    Amount = p.Amount,
+                    DueDate = p.DueDate,
+                    PaidAt = p.PaidAt
+                })
+                .ToListAsync();
+
+            return Ok(payments);
+        }
     }
 }

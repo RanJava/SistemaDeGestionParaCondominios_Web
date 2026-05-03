@@ -79,8 +79,6 @@ namespace CondoAdmin.API.Controllers
                 })
                 .OrderBy(r => r.CreatedAt)
                 .ToListAsync();
-            if (!requests.Any()) return Ok("No hay pendientes");
-
             return Ok(requests);
         }
 
@@ -161,6 +159,39 @@ namespace CondoAdmin.API.Controllers
                 CreatedAt = existing.CreatedAt,
                 ResolvedAt = existing.ResolvedAt
             });
+        }
+
+        // GET: api/maintenancerequest/filter
+        [HttpGet("filter")]
+        public async Task<ActionResult<ICollection<ListMaintenanceOutput>>> FilterRequests(
+            [FromQuery] int? unitId,
+            [FromQuery] bool? isResolved)
+        {
+            var query = _contexto.MaintenanceRequests.AsQueryable();
+
+            if (unitId.HasValue)
+                query = query.Where(r => r.UnitId == unitId.Value);
+
+            if (isResolved.HasValue)
+                query = isResolved.Value
+                    ? query.Where(r => r.ResolvedAt != null)
+                    : query.Where(r => r.ResolvedAt == null);
+
+            var requests = await query
+                .AsNoTracking()
+                .Select(r => new ListMaintenanceOutput
+                {
+                    Id = r.Id,
+                    Title = r.Title,
+                    Description = r.Description,
+                    UnitNumber = r.Unit.UnitNumber,
+                    CreatedAt = r.CreatedAt,
+                    ResolvedAt = r.ResolvedAt
+                })
+                .OrderBy(r => r.CreatedAt)
+                .ToListAsync();
+
+            return Ok(requests);
         }
     }
 }

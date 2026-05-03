@@ -373,4 +373,34 @@ public class RentalController : BaseApiController
             TotalDebt     = effectiveDebt
         };
     }
+
+    // GET: api/rental/filter
+    [HttpGet("filter")]
+    public async Task<ActionResult<ICollection<GetRentalOutput>>> FilterRentals(
+        [FromQuery] string? status,
+        [FromQuery] int? residentId)
+    {
+        var query = _context.RentalContracts.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (Enum.TryParse<RentalContractStatus>(status, ignoreCase: true, out var parsedStatus))
+                query = query.Where(c => c.Status == parsedStatus);
+            else
+                return BadRequest($"Estado '{status}' no válido. Use: Active, Terminated, Cancelled.");
+        }
+
+        if (residentId.HasValue)
+            query = query.Where(c => c.ResidentId == residentId.Value);
+
+        var contracts = await query
+            .Include(c => c.Resident)
+            .Include(c => c.Unit)
+                .ThenInclude(u => u.Building)
+            .Include(c => c.Payments)
+            .AsNoTracking()
+            .ToListAsync();
+
+        return Ok(contracts.Select(MapToOutput).ToList());
+    }
 }

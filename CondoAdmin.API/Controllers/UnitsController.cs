@@ -166,5 +166,40 @@ namespace CondoAdmin.API.Controllers
             await _contexto.SaveChangesAsync();
             return NoContent();
         }
+        // GET: api/unit/filter
+        [HttpGet("filter")]
+        public async Task<ActionResult<ICollection<ListUnitOutput>>> FilterUnits(
+            [FromQuery] int? buildingId,
+            [FromQuery] string? status)
+        {
+            var query = _contexto.Units.AsQueryable();
+
+            if (buildingId.HasValue)
+                query = query.Where(u => u.BuildingId == buildingId.Value);
+
+            if (!string.IsNullOrWhiteSpace(status))
+            {
+                if (Enum.TryParse<UnitStatus>(status, ignoreCase: true, out var parsedStatus))
+                    query = query.Where(u => u.Status == parsedStatus);
+                else
+                    return BadRequest($"Estado '{status}' no válido. Use: Available, Sold, Rented.");
+            }
+
+            var units = await query
+                .AsNoTracking()
+                .Select(u => new ListUnitOutput
+                {
+                    Id = u.Id,
+                    UnitNumber = u.UnitNumber,
+                    Floor = u.Floor,
+                    AreaM2 = u.AreaM2,
+                    MonthlyFee = u.MonthlyFee,
+                    Status = u.Status.ToString(),
+                    BuildingName = u.Building.Name
+                })
+                .ToListAsync();
+
+            return Ok(units);
+        }
     }
 }
