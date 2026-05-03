@@ -122,9 +122,9 @@ namespace CondoAdmin.API.Controllers
                 ResidentId = input.ResidentId,
                 Month = input.Month,
                 Amount = input.Amount,
-                DueDate = input.DueDate,
+                DueDate = DateTime.UtcNow,
                 Notes = input.Notes,
-                PaidAt = null
+                PaidAt = null,
             };
 
             _contexto.Payments.Add(payment);
@@ -140,6 +140,18 @@ namespace CondoAdmin.API.Controllers
             };
 
             return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, output);
+        }
+
+        [HttpPatch("{id}/pay")]
+        public async Task<IActionResult> MarkAsPaid(int id)
+        {
+            var payment = await _contexto.Payments.FindAsync(id);
+            if (payment == null) return NotFound();
+
+            payment.PaidAt = DateTime.UtcNow; 
+            await _contexto.SaveChangesAsync();
+
+            return NoContent();
         }
 
         // GET: api/payment/filter

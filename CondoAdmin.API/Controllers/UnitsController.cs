@@ -119,6 +119,9 @@ namespace CondoAdmin.API.Controllers
             var building = await _contexto.Buildings.FindAsync(input.BuildingId);
             if (building == null)
                 return NotFound($"No se encontró el edificio con ID {input.BuildingId}.");
+            var existingUnit = await _contexto.Units.CountAsync(u => u.BuildingId == input.BuildingId);
+            if (existingUnit >= building.TotalUnits)
+                return BadRequest($"El edificio '{building.Name}' ya tiene el número máximo de unidades ({building.TotalUnits}).");
 
             var unit = new Unit
             {
