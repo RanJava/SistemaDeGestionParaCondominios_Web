@@ -97,7 +97,9 @@ public class RentalController : BaseApiController
 
         foreach (var item in input.Units)
         {
+            // FIX: Include Building para poder leer su nombre en el output
             var unit = await _context.Units
+                .Include(u => u.Building)
                 .FirstOrDefaultAsync(u => u.UnitNumber == item.UnitNumber.Trim());
 
             if (unit is null)
@@ -138,7 +140,7 @@ public class RentalController : BaseApiController
             {
                 ContractId         = contract.Id,
                 UnitNumber         = unit.UnitNumber,
-                BuildingName       = item.UnitNumber, // Se llena abajo con Include
+                BuildingName       = unit.Building?.Name ?? "",
                 StartDate          = contract.StartDate,
                 EndDate            = contract.EndDate,
                 MonthlyRent        = contract.MonthlyRent,

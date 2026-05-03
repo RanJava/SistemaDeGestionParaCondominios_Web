@@ -21,55 +21,56 @@ namespace CondoAdmin.API.Controllers
         {
             var today = DateTime.Today;
 
-            var buildingTotal  = await _contexto.Buildings.CountAsync();
+            var buildingTotal = await _contexto.Buildings.CountAsync();
             var buildingActive = await _contexto.Buildings.CountAsync(b => b.IsActive);
 
-            var unitTotal     = await _contexto.Units.CountAsync();
+            var unitTotal = await _contexto.Units.CountAsync();
             var unitAvailable = await _contexto.Units.CountAsync(u => u.Status == UnitStatus.Available);
-            var unitSold      = await _contexto.Units.CountAsync(u => u.Status == UnitStatus.Sold);
-            var unitRented    = await _contexto.Units.CountAsync(u => u.Status == UnitStatus.Rented);
+            var unitSold = await _contexto.Units.CountAsync(u => u.Status == UnitStatus.Sold);
+            var unitRented = await _contexto.Units.CountAsync(u => u.Status == UnitStatus.Rented);
 
-            var residentTotal  = await _contexto.Residents.CountAsync();
+            var residentTotal = await _contexto.Residents.CountAsync();
             var residentActive = await _contexto.Residents.CountAsync(r => r.IsActive);
+            var pendingCount = await _contexto.Payments
+                .CountAsync(p => p.PaidAt == null && p.DueDate < today);
 
-            var pendingPayments = await _contexto.Payments
+            var totalDebt = await _contexto.Payments
                 .Where(p => p.PaidAt == null && p.DueDate < today)
-                .ToListAsync();
+                .SumAsync(p => p.Amount);
 
-            var maintenancePending  = await _contexto.MaintenanceRequests.CountAsync(m => m.ResolvedAt == null);
+            var maintenancePending = await _contexto.MaintenanceRequests.CountAsync(m => m.ResolvedAt == null);
             var maintenanceResolved = await _contexto.MaintenanceRequests.CountAsync(m => m.ResolvedAt != null);
 
             var output = new DashboardOutput
             {
                 Buildings = new BuildingSummary
                 {
-                    Total  = buildingTotal,
+                    Total = buildingTotal,
                     Active = buildingActive
                 },
                 Units = new UnitSummary
                 {
-                    Total     = unitTotal,
+                    Total = unitTotal,
                     Available = unitAvailable,
-                    Sold      = unitSold,
-                    Rented    = unitRented
+                    Sold = unitSold,
+                    Rented = unitRented
                 },
                 Residents = new ResidentSummary
                 {
-                    Total  = residentTotal,
+                    Total = residentTotal,
                     Active = residentActive
                 },
                 Payments = new PaymentSummary
                 {
-                    PendingCount = pendingPayments.Count,
-                    TotalDebt    = pendingPayments.Sum(p => p.Amount)
+                    PendingCount = pendingCount,
+                    TotalDebt = totalDebt
                 },
                 Maintenance = new MaintenanceSummary
                 {
-                    PendingCount  = maintenancePending,
+                    PendingCount = maintenancePending,
                     ResolvedCount = maintenanceResolved
                 }
             };
-
             return Ok(output);
         }
     }

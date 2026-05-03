@@ -60,9 +60,9 @@ namespace CondoAdmin.API.Controllers
             return Ok(payment);
         }
 
-        // GET: api/payment/by-resident/{residentId}
-        [HttpGet("by-resident/{residentId}")]
-        public async Task<ActionResult<ICollection<ListPaymentOutput>>> GetPaymentsByResident(int residentId)
+        // GET: api/payment/by-resident
+        [HttpGet("by-resident")]
+        public async Task<ActionResult<ICollection<ListPaymentOutput>>> GetPaymentsByResident([FromQuery] int residentId)
         {
             var exists = await _contexto.Residents.AnyAsync(r => r.Id == residentId);
             if (!exists)

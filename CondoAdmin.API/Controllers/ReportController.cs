@@ -52,10 +52,10 @@ namespace CondoAdmin.API.Controllers
 
                 result.Add(new DebtorReportOutput
                 {
-                    BuildingName  = building.Name,
-                    TotalDebtors  = debtors.Count,
-                    TotalDebt     = debtors.Sum(d => d.TotalDebt),
-                    Debtors       = debtors
+                    BuildingName = building.Name,
+                    TotalDebtors = debtors.Count,
+                    TotalDebt = debtors.Sum(d => d.TotalDebt),
+                    Debtors = debtors
                 });
             }
 
@@ -69,29 +69,28 @@ namespace CondoAdmin.API.Controllers
             var building = await _contexto.Buildings.FindAsync(buildingId);
             if (building == null)
                 return NotFound($"No se encontró el edificio con ID {buildingId}.");
-
             var payments = await _contexto.Payments
                 .AsNoTracking()
-                .Where(p => p.Resident.Unit != null &&
-                            p.Resident.Unit.BuildingId == buildingId)
+                .Where(p => (p.Resident.Unit != null && p.Resident.Unit.BuildingId == buildingId) ||
+                            (p.RentalContract != null && p.RentalContract.Unit.BuildingId == buildingId))
                 .ToListAsync();
 
             var details = payments
                 .GroupBy(p => p.Month)
                 .Select(g => new IncomeDetail
                 {
-                    Month     = g.Key,
+                    Month = g.Key,
                     Collected = g.Where(p => p.PaidAt != null).Sum(p => p.Amount),
-                    Pending   = g.Where(p => p.PaidAt == null).Sum(p => p.Amount)
+                    Pending = g.Where(p => p.PaidAt == null).Sum(p => p.Amount)
                 })
                 .ToList();
 
             return Ok(new IncomeReportOutput
             {
-                BuildingName   = building.Name,
+                BuildingName = building.Name,
                 TotalCollected = details.Sum(d => d.Collected),
-                TotalPending   = details.Sum(d => d.Pending),
-                Details        = details
+                TotalPending = details.Sum(d => d.Pending),
+                Details = details
             });
         }
 
@@ -112,21 +111,21 @@ namespace CondoAdmin.API.Controllers
                     .Where(u => u.BuildingId == building.Id)
                     .ToListAsync();
 
-                var total     = units.Count;
+                var total = units.Count;
                 var available = units.Count(u => u.Status == UnitStatus.Available);
-                var sold      = units.Count(u => u.Status == UnitStatus.Sold);
-                var rented    = units.Count(u => u.Status == UnitStatus.Rented);
-                var rate      = total > 0
-                                ? Math.Round((decimal)(sold + rented) / total * 100, 2)
-                                : 0;
+                var sold = units.Count(u => u.Status == UnitStatus.Sold);
+                var rented = units.Count(u => u.Status == UnitStatus.Rented);
+                var rate = total > 0
+                    ? Math.Round((decimal)(sold + rented) / total * 100, 2)
+                    : 0;
 
                 result.Add(new OccupancyReportOutput
                 {
-                    BuildingName  = building.Name,
-                    TotalUnits    = total,
-                    Available     = available,
-                    Sold          = sold,
-                    Rented        = rented,
+                    BuildingName = building.Name,
+                    TotalUnits = total,
+                    Available = available,
+                    Sold = sold,
+                    Rented = rented,
                     OccupancyRate = rate
                 });
             }
