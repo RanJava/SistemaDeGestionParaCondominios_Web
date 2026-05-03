@@ -2,8 +2,8 @@ namespace CondoAdmin.Application.DTO.Rental.TriggerRental;
 
 public class TriggerRentalOutput
 {
-    public string Tenant    { get; set; } = string.Empty;
-    public string DNI       { get; set; } = string.Empty;
+    public string? Tenant    { get; set; }
+    public string? DNI       { get; set; }
     public DateTime CreatedAt { get; set; }
     public List<RentalContractOutput> Contracts { get; set; } = [];
 }
@@ -11,8 +11,8 @@ public class TriggerRentalOutput
 public class RentalContractOutput
 {
     public int      ContractId         { get; set; }
-    public string   UnitNumber         { get; set; } = string.Empty;
-    public string   BuildingName       { get; set; } = string.Empty;
+    public string?   UnitNumber         { get; set; }
+    public string?   BuildingName       { get; set; }
     public DateTime StartDate          { get; set; }
     public DateTime EndDate            { get; set; }
     public decimal  MonthlyRent        { get; set; }

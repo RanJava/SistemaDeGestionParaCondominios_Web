@@ -7,9 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CondoAdmin.API.Controllers;
-
-[Route("api/[controller]")]
-[ApiController]
 public class SalesController : BaseApiController
 {
     private readonly AppDbContext _context;

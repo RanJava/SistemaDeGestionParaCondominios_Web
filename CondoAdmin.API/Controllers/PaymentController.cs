@@ -1,3 +1,5 @@
+using CondoAdmin.Application.DTO.Payment.CreatePayment;
+using CondoAdmin.Application.DTO.Payment.ListPayment;
 using CondoAdmin.Domain.Entities;
 using CondoAdmin.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -5,9 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CondoAdmin.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PaymentController : ControllerBase
+    public class PaymentController : BaseApiController
     {
         private readonly AppDbContext _contexto;
 
@@ -16,24 +16,43 @@ namespace CondoAdmin.API.Controllers
             _contexto = contexto;
         }
 
-        // GET
+        // GET: api/payment
         [HttpGet]
-        public async Task<ActionResult<ICollection<Payment>>> GetPayments()
+        public async Task<ActionResult<ICollection<ListPaymentOutput>>> GetPayments()
         {
             var payments = await _contexto.Payments
-                .Include(p => p.Resident)
+                .AsNoTracking()
+                .Select(p => new ListPaymentOutput
+                {
+                    Id = p.Id,
+                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
+                    Month = p.Month,
+                    Amount = p.Amount,
+                    DueDate = p.DueDate,
+                    PaidAt = p.PaidAt
+                })
                 .ToListAsync();
 
             return Ok(payments);
         }
 
-        // GET by ID
+        // GET: api/payment/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<Payment>> GetPayment(int id)
+        public async Task<ActionResult<ListPaymentOutput>> GetPayment(int id)
         {
             var payment = await _contexto.Payments
-                .Include(p => p.Resident)
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .AsNoTracking()
+                .Where(p => p.Id == id)
+                .Select(p => new ListPaymentOutput
+                {
+                    Id = p.Id,
+                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
+                    Month = p.Month,
+                    Amount = p.Amount,
+                    DueDate = p.DueDate,
+                    PaidAt = p.PaidAt
+                })
+                .FirstOrDefaultAsync();
 
             if (payment == null)
                 return NotFound();
@@ -41,27 +60,86 @@ namespace CondoAdmin.API.Controllers
             return Ok(payment);
         }
 
-        // POST
-        [HttpPost]
-        public async Task<ActionResult<Payment>> CreatePayment([FromBody] Payment payment)
+        // GET: api/payment/by-resident/{residentId}
+        [HttpGet("by-resident/{residentId}")]
+        public async Task<ActionResult<ICollection<ListPaymentOutput>>> GetPaymentsByResident(int residentId)
         {
+            var exists = await _contexto.Residents.AnyAsync(r => r.Id == residentId);
+            if (!exists)
+                return NotFound($"No se encontró el residente con ID {residentId}.");
+
+            var payments = await _contexto.Payments
+                .AsNoTracking()
+                .Where(p => p.ResidentId == residentId)
+                .Select(p => new ListPaymentOutput
+                {
+                    Id = p.Id,
+                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
+                    Month = p.Month,
+                    Amount = p.Amount,
+                    DueDate = p.DueDate,
+                    PaidAt = p.PaidAt
+                })
+                .ToListAsync();
+
+            return Ok(payments);
+        }
+
+        // GET: api/payment/pending
+        [HttpGet("pending")]
+        public async Task<ActionResult<ICollection<ListPaymentOutput>>> GetPendingPayments()
+        {
+            var today = DateTime.Today;
+
+            var payments = await _contexto.Payments
+                .AsNoTracking()
+                .Where(p => p.PaidAt == null && p.DueDate < today)
+                .Select(p => new ListPaymentOutput
+                {
+                    Id = p.Id,
+                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
+                    Month = p.Month,
+                    Amount = p.Amount,
+                    DueDate = p.DueDate,
+                    PaidAt = p.PaidAt
+                })
+                .OrderBy(p => p.DueDate)
+                .ToListAsync();
+
+            return Ok(payments);
+        }
+
+        // POST: api/payment
+        [HttpPost]
+        public async Task<ActionResult<CreatePaymentOutput>> CreatePayment([FromBody] CreatePaymentInput input)
+        {
+            var resident = await _contexto.Residents.FindAsync(input.ResidentId);
+            if (resident == null)
+                return NotFound($"No se encontró el residente con ID {input.ResidentId}.");
+
+            var payment = new Payment
+            {
+                ResidentId = input.ResidentId,
+                Month = input.Month,
+                Amount = input.Amount,
+                DueDate = input.DueDate,
+                Notes = input.Notes,
+                PaidAt = null
+            };
+
             _contexto.Payments.Add(payment);
             await _contexto.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, payment);
-        }
+            var output = new CreatePaymentOutput
+            {
+                Id = payment.Id,
+                ResidentName = $"{resident.FirstName} {resident.LastName}",
+                Month = payment.Month,
+                Amount = payment.Amount,
+                DueDate = payment.DueDate
+            };
 
-        // DELETE
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeletePayment(int id)
-        {
-            var payment = await _contexto.Payments.FindAsync(id);
-            if (payment == null)
-                return NotFound();
-
-            _contexto.Payments.Remove(payment);
-            await _contexto.SaveChangesAsync();
-            return NoContent();
+            return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, output);
         }
     }
 }

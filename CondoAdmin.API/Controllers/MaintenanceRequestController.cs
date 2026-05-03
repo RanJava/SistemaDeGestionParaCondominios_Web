@@ -1,3 +1,6 @@
+using CondoAdmin.Application.DTO.MaintenanceRequest.CreateMaintenance;
+using CondoAdmin.Application.DTO.MaintenanceRequest.ListMaintenance;
+using CondoAdmin.Application.DTO.MaintenanceRequest.UpdateMaintenance;
 using CondoAdmin.Domain.Entities;
 using CondoAdmin.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Mvc;
@@ -16,24 +19,43 @@ namespace CondoAdmin.API.Controllers
             _contexto = contexto;
         }
 
-        // GET
+        // GET: api/maintenancerequest
         [HttpGet]
-        public async Task<ActionResult<ICollection<MaintenanceRequest>>> GetRequests()
+        public async Task<ActionResult<ICollection<ListMaintenanceOutput>>> GetRequests()
         {
             var requests = await _contexto.MaintenanceRequests
-                .Include(r => r.Unit)
+                .AsNoTracking()
+                .Select(r => new ListMaintenanceOutput
+                {
+                    Id = r.Id,
+                    Title = r.Title,
+                    Description = r.Description,
+                    UnitNumber = r.Unit.UnitNumber,
+                    CreatedAt = r.CreatedAt,
+                    ResolvedAt = r.ResolvedAt
+                })
                 .ToListAsync();
 
             return Ok(requests);
         }
 
-        // GET by ID
+        // GET: api/maintenancerequest/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<MaintenanceRequest>> GetRequest(int id)
+        public async Task<ActionResult<ListMaintenanceOutput>> GetRequest(int id)
         {
             var request = await _contexto.MaintenanceRequests
-                .Include(r => r.Unit)
-                .FirstOrDefaultAsync(r => r.Id == id);
+                .AsNoTracking()
+                .Where(r => r.Id == id)
+                .Select(r => new ListMaintenanceOutput
+                {
+                    Id = r.Id,
+                    Title = r.Title,
+                    Description = r.Description,
+                    UnitNumber = r.Unit.UnitNumber,
+                    CreatedAt = r.CreatedAt,
+                    ResolvedAt = r.ResolvedAt
+                })
+                .FirstOrDefaultAsync();
 
             if (request == null)
                 return NotFound();
@@ -41,49 +63,106 @@ namespace CondoAdmin.API.Controllers
             return Ok(request);
         }
 
-        // POST
-        [HttpPost]
-        public async Task<ActionResult<MaintenanceRequest>> CreateRequest([FromBody] MaintenanceRequest request)
+        // GET: api/maintenancerequest/pending
+        [HttpGet("pending")]
+        public async Task<ActionResult<ICollection<ListMaintenanceOutput>>> GetPendingRequests()
         {
+            var requests = await _contexto.MaintenanceRequests
+                .AsNoTracking()
+                .Where(r => r.ResolvedAt == null)
+                .Select(r => new ListMaintenanceOutput
+                {
+                    Id = r.Id,
+                    Title = r.Title,
+                    Description = r.Description,
+                    UnitNumber = r.Unit.UnitNumber,
+                    CreatedAt = r.CreatedAt,
+                    ResolvedAt = r.ResolvedAt
+                })
+                .OrderBy(r => r.CreatedAt)
+                .ToListAsync();
+            if (!requests.Any()) return Ok("No hay pendientes");
+
+            return Ok(requests);
+        }
+
+        // POST: api/maintenancerequest
+        [HttpPost]
+        public async Task<ActionResult<CreateMaintenanceOutput>> CreateRequest([FromBody] CreateMaintenanceInput input)
+        {
+            var unit = await _contexto.Units.FindAsync(input.UnitId);
+            if (unit == null)
+                return NotFound($"No se encontró la unidad con ID {input.UnitId}.");
+
+            var request = new MaintenanceRequest
+            {
+                Title = input.Title,
+                Description = input.Description,
+                UnitId = input.UnitId,
+                CreatedAt = DateTime.Now,
+                ResolvedAt = null
+            };
+
             _contexto.MaintenanceRequests.Add(request);
             await _contexto.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetRequest), new { id = request.Id }, request);
+            var output = new CreateMaintenanceOutput
+            {
+                Id = request.Id,
+                Title = request.Title,
+                UnitNumber = unit.UnitNumber,
+                CreatedAt = request.CreatedAt
+            };
+
+            return CreatedAtAction(nameof(GetRequest), new { id = request.Id }, output);
         }
 
-        // PUT
+        // PUT: api/maintenancerequest/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateRequest(int id, [FromBody] MaintenanceRequest request)
+        public async Task<IActionResult> UpdateRequest(int id, [FromBody] UpdateMaintenanceInput input)
         {
-            if (id != request.Id)
-                return BadRequest("El ID no coincide con la solicitud enviada.");
-
             var existing = await _contexto.MaintenanceRequests.FindAsync(id);
             if (existing == null)
                 return NotFound();
 
-            // PROPIEDADES CORRECTAS
-            existing.Title = request.Title;
-            existing.Description = request.Description;
-            existing.CreatedAt = request.CreatedAt;
-            existing.ResolvedAt = request.ResolvedAt;
-            existing.UnitId = request.UnitId;
+            var unit = await _contexto.Units.FindAsync(input.UnitId);
+            if (unit == null)
+                return NotFound($"No se encontró la unidad con ID {input.UnitId}.");
+
+            existing.Title = input.Title;
+            existing.Description = input.Description;
+            existing.UnitId = input.UnitId;
 
             await _contexto.SaveChangesAsync();
             return NoContent();
         }
 
-        // DELETE
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteRequest(int id)
+        // PUT: api/maintenancerequest/{id}/resolve
+        [HttpPut("{id}/resolve")]
+        public async Task<ActionResult<ListMaintenanceOutput>> ResolveRequest(int id)
         {
-            var request = await _contexto.MaintenanceRequests.FindAsync(id);
-            if (request == null)
+            var existing = await _contexto.MaintenanceRequests
+                .Include(r => r.Unit)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (existing == null)
                 return NotFound();
 
-            _contexto.MaintenanceRequests.Remove(request);
+            if (existing.ResolvedAt != null)
+                return BadRequest("La solicitud ya fue resuelta.");
+
+            existing.ResolvedAt = DateTime.Now;
             await _contexto.SaveChangesAsync();
-            return NoContent();
+
+            return Ok(new ListMaintenanceOutput
+            {
+                Id = existing.Id,
+                Title = existing.Title,
+                Description = existing.Description,
+                UnitNumber = existing.Unit.UnitNumber,
+                CreatedAt = existing.CreatedAt,
+                ResolvedAt = existing.ResolvedAt
+            });
         }
     }
 }
