@@ -8,6 +8,7 @@
     <Folder Include="DTO\Building\AddBuilding\" />
     <Folder Include="DTO\Building\ListBuilding\" />
     <Folder Include="DTO\Building\UpdateBuilding\" />
+    <Folder Include="DTO\Dashboard\" />
     <Folder Include="DTO\MaintenanceRequest\" />
     <Folder Include="DTO\MaintenanceRequest\CreateMaintenance\" />
     <Folder Include="DTO\MaintenanceRequest\ListMaintenance\" />
@@ -15,10 +16,18 @@
     <Folder Include="DTO\Payment\" />
     <Folder Include="DTO\Payment\CreatePayment\" />
     <Folder Include="DTO\Payment\ListPayment\" />
+    <Folder Include="DTO\Report\" />
+    <Folder Include="DTO\Report\DebtorReport\" />
+    <Folder Include="DTO\Report\IncomeReport\" />
+    <Folder Include="DTO\Report\OccupancyReport\" />
     <Folder Include="DTO\Residents\ListResidentsDebtor\" />
     <Folder Include="DTO\Residents\ListResidents\" />
     <Folder Include="DTO\Residents\UpdateResident\" />
-    <Folder Include="DTO\Units\" />
+    <Folder Include="DTO\Unit\" />
+    <Folder Include="DTO\Unit\CreateUnit\" />
+    <Folder Include="DTO\Unit\ListUnit\" />
+    <Folder Include="DTO\Unit\UpdateUnit\" />
+    <Folder Include="DTO\Visitor\" />
   </ItemGroup>
 
   <PropertyGroup>

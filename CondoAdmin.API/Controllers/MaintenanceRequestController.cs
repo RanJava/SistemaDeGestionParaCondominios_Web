@@ -8,9 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CondoAdmin.API.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class MaintenanceRequestController : ControllerBase
+    public class MaintenanceRequestController : BaseApiController
     {
         private readonly AppDbContext _contexto;
 
