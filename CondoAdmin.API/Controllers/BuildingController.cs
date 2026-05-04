@@ -70,7 +70,7 @@ namespace CondoAdmin.API.Controllers
                 Name = input.Name,
                 Address = input.Address,
                 City = input.City,
-                TotalUnits = 0,
+                TotalUnits = input.TotalUnits,
                 CreatedAt = DateTime.Now,
                 IsActive = true
             };

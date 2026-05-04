@@ -60,9 +60,9 @@ namespace CondoAdmin.API.Controllers
             return Ok(payment);
         }
 
-        // GET: api/payment/by-resident/{residentId}
-        [HttpGet("by-resident/{residentId}")]
-        public async Task<ActionResult<ICollection<ListPaymentOutput>>> GetPaymentsByResident(int residentId)
+        // GET: api/payment/by-resident
+        [HttpGet("by-resident")]
+        public async Task<ActionResult<ICollection<ListPaymentOutput>>> GetPaymentsByResident([FromQuery] int residentId)
         {
             var exists = await _contexto.Residents.AnyAsync(r => r.Id == residentId);
             if (!exists)
@@ -122,9 +122,9 @@ namespace CondoAdmin.API.Controllers
                 ResidentId = input.ResidentId,
                 Month = input.Month,
                 Amount = input.Amount,
-                DueDate = input.DueDate,
+                DueDate = DateTime.UtcNow,
                 Notes = input.Notes,
-                PaidAt = null
+                PaidAt = null,
             };
 
             _contexto.Payments.Add(payment);
@@ -140,6 +140,54 @@ namespace CondoAdmin.API.Controllers
             };
 
             return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, output);
+        }
+
+        [HttpPatch("{id}/pay")]
+        public async Task<IActionResult> MarkAsPaid(int id)
+        {
+            var payment = await _contexto.Payments.FindAsync(id);
+            if (payment == null) return NotFound();
+
+            payment.PaidAt = DateTime.UtcNow; 
+            await _contexto.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        // GET: api/payment/filter
+        [HttpGet("filter")]
+        public async Task<ActionResult<ICollection<ListPaymentOutput>>> FilterPayments(
+            [FromQuery] int? residentId,
+            [FromQuery] bool? isPaid,
+            [FromQuery] string? month)
+        {
+            var query = _contexto.Payments.AsQueryable();
+
+            if (residentId.HasValue)
+                query = query.Where(p => p.ResidentId == residentId.Value);
+
+            if (isPaid.HasValue)
+                query = isPaid.Value
+                    ? query.Where(p => p.PaidAt != null)
+                    : query.Where(p => p.PaidAt == null);
+
+            if (!string.IsNullOrWhiteSpace(month))
+                query = query.Where(p => p.Month.Contains(month));
+
+            var payments = await query
+                .AsNoTracking()
+                .Select(p => new ListPaymentOutput
+                {
+                    Id = p.Id,
+                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
+                    Month = p.Month,
+                    Amount = p.Amount,
+                    DueDate = p.DueDate,
+                    PaidAt = p.PaidAt
+                })
+                .ToListAsync();
+
+            return Ok(payments);
         }
     }
 }
