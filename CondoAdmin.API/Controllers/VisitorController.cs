@@ -1,3 +1,4 @@
+using AutoMapper;
 using CondoAdmin.Application.DTO.Visitors.CreateVisitor;
 using CondoAdmin.Application.DTO.Visitors.ListVisitor;
 using CondoAdmin.Application.DTO.Visitors.UpdateVisitor;
@@ -11,10 +12,12 @@ namespace CondoAdmin.API.Controllers
     public class VisitorController : BaseApiController
     {
         private readonly AppDbContext _contexto;
+        private readonly IMapper _mapper;
 
-        public VisitorController(AppDbContext contexto)
+        public VisitorController(AppDbContext contexto, IMapper mapper)
         {
             _contexto = contexto;
+            _mapper = mapper;
         }
 
         // GET: api/visitor
@@ -22,20 +25,11 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListVisitorOutput>>> GetVisitors()
         {
             var visitors = await _contexto.Visitors
+                .Include(v => v.Unit)
                 .AsNoTracking()
-                .Select(v => new ListVisitorOutput
-                {
-                    Id = v.Id,
-                    FullName = v.FullName,
-                    DNI = v.DNI,
-                    LicensePlate = v.LicensePlate,
-                    UnitNumber = v.Unit.UnitNumber,
-                    EntryTime = v.EntryTime,
-                    ExitTime = v.ExitTime
-                })
                 .ToListAsync();
 
-            return Ok(visitors);
+            return Ok(_mapper.Map<ICollection<ListVisitorOutput>>(visitors));
         }
 
         // GET: api/visitor/{id}
@@ -43,24 +37,14 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ListVisitorOutput>> GetVisitor(int id)
         {
             var visitor = await _contexto.Visitors
+                .Include(v => v.Unit)
                 .AsNoTracking()
-                .Where(v => v.Id == id)
-                .Select(v => new ListVisitorOutput
-                {
-                    Id = v.Id,
-                    FullName = v.FullName,
-                    DNI = v.DNI,
-                    LicensePlate = v.LicensePlate,
-                    UnitNumber = v.Unit.UnitNumber,
-                    EntryTime = v.EntryTime,
-                    ExitTime = v.ExitTime
-                })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(v => v.Id == id);
 
             if (visitor == null)
                 return NotFound();
 
-            return Ok(visitor);
+            return Ok(_mapper.Map<ListVisitorOutput>(visitor));
         }
 
         // GET: api/visitor/inside
@@ -68,21 +52,12 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListVisitorOutput>>> GetVisitorsInside()
         {
             var visitors = await _contexto.Visitors
+                .Include(v => v.Unit)
                 .AsNoTracking()
                 .Where(v => v.ExitTime == null)
-                .Select(v => new ListVisitorOutput
-                {
-                    Id = v.Id,
-                    FullName = v.FullName,
-                    DNI = v.DNI,
-                    LicensePlate = v.LicensePlate,
-                    UnitNumber = v.Unit.UnitNumber,
-                    EntryTime = v.EntryTime,
-                    ExitTime = v.ExitTime
-                })
                 .ToListAsync();
 
-            return Ok(visitors);
+            return Ok(_mapper.Map<ICollection<ListVisitorOutput>>(visitors));
         }
 
         // POST: api/visitor
@@ -106,15 +81,8 @@ namespace CondoAdmin.API.Controllers
             _contexto.Visitors.Add(visitor);
             await _contexto.SaveChangesAsync();
 
-            var output = new CreateVisitorOutput
-            {
-                Id = visitor.Id,
-                FullName = visitor.FullName,
-                DNI = visitor.DNI,
-                UnitNumber = unit.UnitNumber,
-                EntryTime = visitor.EntryTime
-            };
-
+            visitor.Unit = unit;
+            var output = _mapper.Map<CreateVisitorOutput>(visitor);
             return CreatedAtAction(nameof(GetVisitor), new { id = visitor.Id }, output);
         }
 
@@ -156,16 +124,7 @@ namespace CondoAdmin.API.Controllers
             existing.ExitTime = DateTime.Now;
             await _contexto.SaveChangesAsync();
 
-            return Ok(new ListVisitorOutput
-            {
-                Id = existing.Id,
-                FullName = existing.FullName,
-                DNI = existing.DNI,
-                LicensePlate = existing.LicensePlate,
-                UnitNumber = existing.Unit.UnitNumber,
-                EntryTime = existing.EntryTime,
-                ExitTime = existing.ExitTime
-            });
+            return Ok(_mapper.Map<ListVisitorOutput>(existing));
         }
 
         // GET: api/visitor/filter
@@ -174,31 +133,18 @@ namespace CondoAdmin.API.Controllers
         [FromQuery] int? unitId,
         [FromQuery] bool? isInside)
         {
-        var query = _contexto.Visitors.AsQueryable();
+            var query = _contexto.Visitors.Include(v => v.Unit).AsQueryable();
 
-        if (unitId.HasValue)
-            query = query.Where(v => v.UnitId == unitId.Value);
+            if (unitId.HasValue)
+                query = query.Where(v => v.UnitId == unitId.Value);
 
-        if (isInside.HasValue)
-            query = isInside.Value
-                ? query.Where(v => v.ExitTime == null)
-                : query.Where(v => v.ExitTime != null);
+            if (isInside.HasValue)
+                query = isInside.Value
+                    ? query.Where(v => v.ExitTime == null)
+                    : query.Where(v => v.ExitTime != null);
 
-        var visitors = await query
-            .AsNoTracking()
-            .Select(v => new ListVisitorOutput
-            {
-                Id = v.Id,
-                FullName = v.FullName,
-                DNI = v.DNI,
-                LicensePlate = v.LicensePlate,
-                UnitNumber = v.Unit.UnitNumber,
-                EntryTime = v.EntryTime,
-                ExitTime = v.ExitTime
-            })
-            .ToListAsync();
-
-        return Ok(visitors);
+            var visitors = await query.AsNoTracking().ToListAsync();
+            return Ok(_mapper.Map<ICollection<ListVisitorOutput>>(visitors));
         }
     }
 }

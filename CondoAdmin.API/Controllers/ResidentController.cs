@@ -1,3 +1,4 @@
+using AutoMapper;
 using CondoAdmin.Application.DTO.Residents.CreateResident;
 using CondoAdmin.Application.DTO.Residents.ListResident;
 using CondoAdmin.Application.DTO.Residents.ListResidents;
@@ -13,52 +14,35 @@ namespace CondoAdmin.API.Controllers
     public class ResidentController : BaseApiController
     {
         private readonly AppDbContext _context;
+        private readonly IMapper _mapper;
 
-        public ResidentController(AppDbContext context)
+        public ResidentController(AppDbContext context, IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
         }
 
-        // GET
         [HttpGet]
         public async Task<ActionResult<ICollection<ListResidentsOutput>>> GetResidents()
         {
             var residents = await _context.Residents
-                .Select(r => new ListResidentsOutput
-                {
-                    Id = r.Id,
-                    FullName = $"{r.FirstName} {r.LastName}",
-                    DNI = r.DNI,
-                    Phone = r.Phone,
-                    Email = r.Email,
-                    UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad"
-                })
+                .Include(r => r.Unit)
                 .ToListAsync();
 
-            return Ok(residents);
+            return Ok(_mapper.Map<ICollection<ListResidentsOutput>>(residents));
         }
 
-        // GET id
         [HttpGet("{id}")]
         public async Task<ActionResult<ListResidentsOutput>> GetResident(int id)
         {
             var resident = await _context.Residents
-                .Where(r => r.Id == id)
-                .Select(r => new ListResidentsOutput
-                {
-                    Id = r.Id,
-                    FullName = $"{r.FirstName} {r.LastName}",
-                    DNI = r.DNI,
-                    Phone = r.Phone,
-                    Email = r.Email,
-                    UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad"
-                })
-                .FirstOrDefaultAsync();
+                .Include(r => r.Unit)
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (resident == null)
                 return NotFound();
 
-            return Ok(resident);
+            return Ok(_mapper.Map<ListResidentsOutput>(resident));
         }
 
         [HttpPost]
@@ -83,22 +67,10 @@ namespace CondoAdmin.API.Controllers
             _context.Residents.Add(resident);
             await _context.SaveChangesAsync();
 
-            var unitNumber = "Sin unidad";
             if (resident.UnitId != null)
-            {
-                var unit = await _context.Units.FindAsync(resident.UnitId);
-                unitNumber = unit?.UnitNumber ?? "Sin unidad";
-            }
+                await _context.Entry(resident).Reference(r => r.Unit).LoadAsync();
 
-            var output = new CreateResidentOutput
-            {
-                Id = resident.Id,
-                FullName = $"{resident.FirstName} {resident.LastName}",
-                DNI = resident.DNI,
-                UnitNumber = unitNumber,
-                MoveInDate = resident.MoveInDate
-            };
-
+            var output = _mapper.Map<CreateResidentOutput>(resident);
             return CreatedAtAction(nameof(GetResident), new { id = resident.Id }, output);
         }
 
@@ -130,58 +102,51 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListResidentByBuildingsOutput>>> GetResidentsByBuilding([FromQuery] int buildingId)
         {
             var residents = await _context.Residents
+                .Include(r => r.Unit)
                 .Where(r => r.Unit != null && r.Unit.BuildingId == buildingId)
-                .Select(r => new ListResidentByBuildingsOutput
-                {
-                    Id = r.Id,
-                    FullName = $"{r.FirstName} {r.LastName}",
-                    DNI = r.DNI,
-                    UnitNumber = r.Unit!.UnitNumber
-                })
                 .ToListAsync();
 
             if (!residents.Any())
                 return NotFound($"No se encontraron residentes para el edificio con ID {buildingId}.");
 
-            return Ok(residents);
+            return Ok(_mapper.Map<ICollection<ListResidentByBuildingsOutput>>(residents));
         }
 
-        // GET: api/resident/debtors
         [HttpGet("debtors")]
         public async Task<ActionResult<ICollection<ListResidentsDebtorOutput>>> GetDebtors()
         {
             var today = DateTime.Today;
 
             var debtors = await _context.Residents
+                .Include(r => r.Unit)
+                .Include(r => r.Payments)
                 .Where(r => r.Payments.Any(p => p.PaidAt == null && p.DueDate < today))
-                .Select(r => new ListResidentsDebtorOutput
-                {
-                    Id = r.Id,
-                    FullName = $"{r.FirstName} {r.LastName}",
-                    DNI = r.DNI,
-                    UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad",
-                    PendingPayments = r.Payments.Count(p => p.PaidAt == null && p.DueDate < today),
-                    TotalDebt = r.Payments
-                        .Where(p => p.PaidAt == null && p.DueDate < today)
-                        .Sum(p => p.Amount)
-                })
-                .OrderByDescending(r => r.TotalDebt)
                 .ToListAsync();
 
             if (!debtors.Any())
                 return NotFound("No se encontraron residentes morosos.");
 
-            return Ok(debtors);
+            var output = _mapper.Map<ICollection<ListResidentsDebtorOutput>>(debtors);
+
+            foreach (var item in output)
+            {
+                var resident = debtors.First(r => r.Id == item.Id);
+                item.PendingPayments = resident.Payments.Count(p => p.PaidAt == null && p.DueDate < today);
+                item.TotalDebt = resident.Payments
+                    .Where(p => p.PaidAt == null && p.DueDate < today)
+                    .Sum(p => p.Amount);
+            }
+
+            return Ok(output.OrderByDescending(r => r.TotalDebt));
         }
 
-        // GET: api/resident/search
         [HttpGet("search")]
         public async Task<ActionResult<ICollection<ListResidentsOutput>>> SearchResidents(
             [FromQuery] string? name,
             [FromQuery] string? dni,
             [FromQuery] bool? isActive)
         {
-            var query = _context.Residents.AsQueryable();
+            var query = _context.Residents.Include(r => r.Unit).AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(name))
                 query = query.Where(r => (r.FirstName + " " + r.LastName).Contains(name));
@@ -192,19 +157,8 @@ namespace CondoAdmin.API.Controllers
             if (isActive.HasValue)
                 query = query.Where(r => r.IsActive == isActive.Value);
 
-            var residents = await query
-                .Select(r => new ListResidentsOutput
-                {
-                    Id = r.Id,
-                    FullName = $"{r.FirstName} {r.LastName}",
-                    DNI = r.DNI,
-                    Phone = r.Phone,
-                    Email = r.Email,
-                    UnitNumber = r.Unit != null ? r.Unit.UnitNumber : "Sin unidad"
-                })
-                .ToListAsync();
-
-            return Ok(residents);
+            var residents = await query.ToListAsync();
+            return Ok(_mapper.Map<ICollection<ListResidentsOutput>>(residents));
         }
     }
 }

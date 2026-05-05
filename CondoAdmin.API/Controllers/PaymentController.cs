@@ -1,3 +1,4 @@
+using AutoMapper;
 using CondoAdmin.Application.DTO.Payment.CreatePayment;
 using CondoAdmin.Application.DTO.Payment.ListPayment;
 using CondoAdmin.Domain.Entities;
@@ -10,10 +11,12 @@ namespace CondoAdmin.API.Controllers
     public class PaymentController : BaseApiController
     {
         private readonly AppDbContext _contexto;
+        private readonly IMapper _mapper;
 
-        public PaymentController(AppDbContext contexto)
+        public PaymentController(AppDbContext contexto, IMapper mapper)
         {
             _contexto = contexto;
+            _mapper = mapper;
         }
 
         // GET: api/payment
@@ -21,19 +24,11 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListPaymentOutput>>> GetPayments()
         {
             var payments = await _contexto.Payments
+                .Include(p => p.Resident)
                 .AsNoTracking()
-                .Select(p => new ListPaymentOutput
-                {
-                    Id = p.Id,
-                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
-                    Month = p.Month,
-                    Amount = p.Amount,
-                    DueDate = p.DueDate,
-                    PaidAt = p.PaidAt
-                })
                 .ToListAsync();
 
-            return Ok(payments);
+            return Ok(_mapper.Map<ICollection<ListPaymentOutput>>(payments));
         }
 
         // GET: api/payment/{id}
@@ -41,23 +36,14 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ListPaymentOutput>> GetPayment(int id)
         {
             var payment = await _contexto.Payments
+                .Include(p => p.Resident)
                 .AsNoTracking()
-                .Where(p => p.Id == id)
-                .Select(p => new ListPaymentOutput
-                {
-                    Id = p.Id,
-                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
-                    Month = p.Month,
-                    Amount = p.Amount,
-                    DueDate = p.DueDate,
-                    PaidAt = p.PaidAt
-                })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(p => p.Id == id);
 
             if (payment == null)
                 return NotFound();
 
-            return Ok(payment);
+            return Ok(_mapper.Map<ListPaymentOutput>(payment));
         }
 
         // GET: api/payment/by-resident
@@ -69,20 +55,12 @@ namespace CondoAdmin.API.Controllers
                 return NotFound($"No se encontró el residente con ID {residentId}.");
 
             var payments = await _contexto.Payments
+                .Include(p => p.Resident)
                 .AsNoTracking()
                 .Where(p => p.ResidentId == residentId)
-                .Select(p => new ListPaymentOutput
-                {
-                    Id = p.Id,
-                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
-                    Month = p.Month,
-                    Amount = p.Amount,
-                    DueDate = p.DueDate,
-                    PaidAt = p.PaidAt
-                })
                 .ToListAsync();
 
-            return Ok(payments);
+            return Ok(_mapper.Map<ICollection<ListPaymentOutput>>(payments));
         }
 
         // GET: api/payment/pending
@@ -92,21 +70,13 @@ namespace CondoAdmin.API.Controllers
             var today = DateTime.Today;
 
             var payments = await _contexto.Payments
+                .Include(p => p.Resident)
                 .AsNoTracking()
                 .Where(p => p.PaidAt == null && p.DueDate < today)
-                .Select(p => new ListPaymentOutput
-                {
-                    Id = p.Id,
-                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
-                    Month = p.Month,
-                    Amount = p.Amount,
-                    DueDate = p.DueDate,
-                    PaidAt = p.PaidAt
-                })
                 .OrderBy(p => p.DueDate)
                 .ToListAsync();
 
-            return Ok(payments);
+            return Ok(_mapper.Map<ICollection<ListPaymentOutput>>(payments));
         }
 
         // POST: api/payment
@@ -130,15 +100,8 @@ namespace CondoAdmin.API.Controllers
             _contexto.Payments.Add(payment);
             await _contexto.SaveChangesAsync();
 
-            var output = new CreatePaymentOutput
-            {
-                Id = payment.Id,
-                ResidentName = $"{resident.FirstName} {resident.LastName}",
-                Month = payment.Month,
-                Amount = payment.Amount,
-                DueDate = payment.DueDate
-            };
-
+            payment.Resident = resident;
+            var output = _mapper.Map<CreatePaymentOutput>(payment);
             return CreatedAtAction(nameof(GetPayment), new { id = payment.Id }, output);
         }
 
@@ -149,7 +112,7 @@ namespace CondoAdmin.API.Controllers
             [FromQuery] bool? isPaid,
             [FromQuery] string? month)
         {
-            var query = _contexto.Payments.AsQueryable();
+            var query = _contexto.Payments.Include(p => p.Resident).AsQueryable();
 
             if (residentId.HasValue)
                 query = query.Where(p => p.ResidentId == residentId.Value);
@@ -162,20 +125,8 @@ namespace CondoAdmin.API.Controllers
             if (!string.IsNullOrWhiteSpace(month))
                 query = query.Where(p => p.Month.Contains(month));
 
-            var payments = await query
-                .AsNoTracking()
-                .Select(p => new ListPaymentOutput
-                {
-                    Id = p.Id,
-                    ResidentName = $"{p.Resident.FirstName} {p.Resident.LastName}",
-                    Month = p.Month,
-                    Amount = p.Amount,
-                    DueDate = p.DueDate,
-                    PaidAt = p.PaidAt
-                })
-                .ToListAsync();
-
-            return Ok(payments);
+            var payments = await query.AsNoTracking().ToListAsync();
+            return Ok(_mapper.Map<ICollection<ListPaymentOutput>>(payments));
         }
     }
 }

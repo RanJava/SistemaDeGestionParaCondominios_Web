@@ -1,3 +1,4 @@
+using CondoAdmin.Application.Mappings;
 using CondoAdmin.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
@@ -27,6 +28,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
+builder.Services.AddAutoMapper(typeof(ResidentProfile).Assembly);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {

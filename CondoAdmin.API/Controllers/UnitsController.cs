@@ -1,3 +1,4 @@
+using AutoMapper;
 using CondoAdmin.Application.DTO.Unit.CreateUnit;
 using CondoAdmin.Application.DTO.Unit.ListUnit;
 using CondoAdmin.Application.DTO.Unit.UpdateUnit;
@@ -12,10 +13,12 @@ namespace CondoAdmin.API.Controllers
     public class UnitController : BaseApiController
     {
         private readonly AppDbContext _contexto;
+        private readonly IMapper _mapper;
 
-        public UnitController(AppDbContext contexto)
+        public UnitController(AppDbContext contexto, IMapper mapper)
         {
             _contexto = contexto;
+            _mapper = mapper;
         }
 
         // GET: api/unit
@@ -23,20 +26,11 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListUnitOutput>>> GetUnits()
         {
             var units = await _contexto.Units
+                .Include(u => u.Building)
                 .AsNoTracking()
-                .Select(u => new ListUnitOutput
-                {
-                    Id = u.Id,
-                    UnitNumber = u.UnitNumber,
-                    Floor = u.Floor,
-                    AreaM2 = u.AreaM2,
-                    MonthlyFee = u.MonthlyFee,
-                    Status = u.Status.ToString(),
-                    BuildingName = u.Building.Name
-                })
                 .ToListAsync();
 
-            return Ok(units);
+            return Ok(_mapper.Map<ICollection<ListUnitOutput>>(units));
         }
 
         // GET: api/unit/{id}
@@ -44,24 +38,14 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ListUnitOutput>> GetUnit(int id)
         {
             var unit = await _contexto.Units
+                .Include(u => u.Building)
                 .AsNoTracking()
-                .Where(u => u.Id == id)
-                .Select(u => new ListUnitOutput
-                {
-                    Id = u.Id,
-                    UnitNumber = u.UnitNumber,
-                    Floor = u.Floor,
-                    AreaM2 = u.AreaM2,
-                    MonthlyFee = u.MonthlyFee,
-                    Status = u.Status.ToString(),
-                    BuildingName = u.Building.Name
-                })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(u => u.Id == id);
 
             if (unit == null)
                 return NotFound();
 
-            return Ok(unit);
+            return Ok(_mapper.Map<ListUnitOutput>(unit));
         }
 
         // GET: api/unit/by-building/{buildingId}
@@ -73,21 +57,12 @@ namespace CondoAdmin.API.Controllers
                 return NotFound($"No se encontró el edificio con ID {buildingId}.");
 
             var units = await _contexto.Units
+                .Include(u => u.Building)
                 .AsNoTracking()
                 .Where(u => u.BuildingId == buildingId)
-                .Select(u => new ListUnitOutput
-                {
-                    Id = u.Id,
-                    UnitNumber = u.UnitNumber,
-                    Floor = u.Floor,
-                    AreaM2 = u.AreaM2,
-                    MonthlyFee = u.MonthlyFee,
-                    Status = u.Status.ToString(),
-                    BuildingName = u.Building.Name
-                })
                 .ToListAsync();
 
-            return Ok(units);
+            return Ok(_mapper.Map<ICollection<ListUnitOutput>>(units));
         }
 
         // GET: api/unit/available
@@ -95,21 +70,12 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListUnitOutput>>> GetAvailableUnits()
         {
             var units = await _contexto.Units
+                .Include(u => u.Building)
                 .AsNoTracking()
                 .Where(u => u.Status == UnitStatus.Available)
-                .Select(u => new ListUnitOutput
-                {
-                    Id = u.Id,
-                    UnitNumber = u.UnitNumber,
-                    Floor = u.Floor,
-                    AreaM2 = u.AreaM2,
-                    MonthlyFee = u.MonthlyFee,
-                    Status = u.Status.ToString(),
-                    BuildingName = u.Building.Name
-                })
                 .ToListAsync();
 
-            return Ok(units);
+            return Ok(_mapper.Map<ICollection<ListUnitOutput>>(units));
         }
 
         // POST: api/unit
@@ -133,15 +99,8 @@ namespace CondoAdmin.API.Controllers
             _contexto.Units.Add(unit);
             await _contexto.SaveChangesAsync();
 
-            var output = new CreateUnitOutput
-            {
-                Id = unit.Id,
-                UnitNumber = unit.UnitNumber,
-                Floor = unit.Floor,
-                MonthlyFee = unit.MonthlyFee,
-                BuildingName = building.Name
-            };
-
+            unit.Building = building;
+            var output = _mapper.Map<CreateUnitOutput>(unit);
             return CreatedAtAction(nameof(GetUnit), new { id = unit.Id }, output);
         }
 
@@ -166,13 +125,14 @@ namespace CondoAdmin.API.Controllers
             await _contexto.SaveChangesAsync();
             return NoContent();
         }
+
         // GET: api/unit/filter
         [HttpGet("filter")]
         public async Task<ActionResult<ICollection<ListUnitOutput>>> FilterUnits(
             [FromQuery] int? buildingId,
             [FromQuery] string? status)
         {
-            var query = _contexto.Units.AsQueryable();
+            var query = _contexto.Units.Include(u => u.Building).AsQueryable();
 
             if (buildingId.HasValue)
                 query = query.Where(u => u.BuildingId == buildingId.Value);
@@ -185,21 +145,8 @@ namespace CondoAdmin.API.Controllers
                     return BadRequest($"Estado '{status}' no válido. Use: Available, Sold, Rented.");
             }
 
-            var units = await query
-                .AsNoTracking()
-                .Select(u => new ListUnitOutput
-                {
-                    Id = u.Id,
-                    UnitNumber = u.UnitNumber,
-                    Floor = u.Floor,
-                    AreaM2 = u.AreaM2,
-                    MonthlyFee = u.MonthlyFee,
-                    Status = u.Status.ToString(),
-                    BuildingName = u.Building.Name
-                })
-                .ToListAsync();
-
-            return Ok(units);
+            var units = await query.AsNoTracking().ToListAsync();
+            return Ok(_mapper.Map<ICollection<ListUnitOutput>>(units));
         }
     }
 }

@@ -1,3 +1,4 @@
+using AutoMapper;
 using CondoAdmin.Application.DTO.MaintenanceRequest.CreateMaintenance;
 using CondoAdmin.Application.DTO.MaintenanceRequest.ListMaintenance;
 using CondoAdmin.Application.DTO.MaintenanceRequest.UpdateMaintenance;
@@ -11,10 +12,12 @@ namespace CondoAdmin.API.Controllers
     public class MaintenanceRequestController : BaseApiController
     {
         private readonly AppDbContext _contexto;
+        private readonly IMapper _mapper;
 
-        public MaintenanceRequestController(AppDbContext contexto)
+        public MaintenanceRequestController(AppDbContext contexto, IMapper mapper)
         {
             _contexto = contexto;
+            _mapper = mapper;
         }
 
         // GET: api/maintenancerequest
@@ -22,19 +25,11 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListMaintenanceOutput>>> GetRequests()
         {
             var requests = await _contexto.MaintenanceRequests
+                .Include(r => r.Unit)
                 .AsNoTracking()
-                .Select(r => new ListMaintenanceOutput
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    Description = r.Description,
-                    UnitNumber = r.Unit.UnitNumber,
-                    CreatedAt = r.CreatedAt,
-                    ResolvedAt = r.ResolvedAt
-                })
                 .ToListAsync();
 
-            return Ok(requests);
+            return Ok(_mapper.Map<ICollection<ListMaintenanceOutput>>(requests));
         }
 
         // GET: api/maintenancerequest/{id}
@@ -42,23 +37,14 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ListMaintenanceOutput>> GetRequest(int id)
         {
             var request = await _contexto.MaintenanceRequests
+                .Include(r => r.Unit)
                 .AsNoTracking()
-                .Where(r => r.Id == id)
-                .Select(r => new ListMaintenanceOutput
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    Description = r.Description,
-                    UnitNumber = r.Unit.UnitNumber,
-                    CreatedAt = r.CreatedAt,
-                    ResolvedAt = r.ResolvedAt
-                })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(r => r.Id == id);
 
             if (request == null)
                 return NotFound();
 
-            return Ok(request);
+            return Ok(_mapper.Map<ListMaintenanceOutput>(request));
         }
 
         // GET: api/maintenancerequest/pending
@@ -66,20 +52,13 @@ namespace CondoAdmin.API.Controllers
         public async Task<ActionResult<ICollection<ListMaintenanceOutput>>> GetPendingRequests()
         {
             var requests = await _contexto.MaintenanceRequests
+                .Include(r => r.Unit)
                 .AsNoTracking()
                 .Where(r => r.ResolvedAt == null)
-                .Select(r => new ListMaintenanceOutput
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    Description = r.Description,
-                    UnitNumber = r.Unit.UnitNumber,
-                    CreatedAt = r.CreatedAt,
-                    ResolvedAt = r.ResolvedAt
-                })
                 .OrderBy(r => r.CreatedAt)
                 .ToListAsync();
-            return Ok(requests);
+
+            return Ok(_mapper.Map<ICollection<ListMaintenanceOutput>>(requests));
         }
 
         // POST: api/maintenancerequest
@@ -102,14 +81,8 @@ namespace CondoAdmin.API.Controllers
             _contexto.MaintenanceRequests.Add(request);
             await _contexto.SaveChangesAsync();
 
-            var output = new CreateMaintenanceOutput
-            {
-                Id = request.Id,
-                Title = request.Title,
-                UnitNumber = unit.UnitNumber,
-                CreatedAt = request.CreatedAt
-            };
-
+            request.Unit = unit;
+            var output = _mapper.Map<CreateMaintenanceOutput>(request);
             return CreatedAtAction(nameof(GetRequest), new { id = request.Id }, output);
         }
 
@@ -150,15 +123,7 @@ namespace CondoAdmin.API.Controllers
             existing.ResolvedAt = DateTime.Now;
             await _contexto.SaveChangesAsync();
 
-            return Ok(new ListMaintenanceOutput
-            {
-                Id = existing.Id,
-                Title = existing.Title,
-                Description = existing.Description,
-                UnitNumber = existing.Unit.UnitNumber,
-                CreatedAt = existing.CreatedAt,
-                ResolvedAt = existing.ResolvedAt
-            });
+            return Ok(_mapper.Map<ListMaintenanceOutput>(existing));
         }
 
         // GET: api/maintenancerequest/filter
@@ -167,7 +132,7 @@ namespace CondoAdmin.API.Controllers
             [FromQuery] int? unitId,
             [FromQuery] bool? isResolved)
         {
-            var query = _contexto.MaintenanceRequests.AsQueryable();
+            var query = _contexto.MaintenanceRequests.Include(r => r.Unit).AsQueryable();
 
             if (unitId.HasValue)
                 query = query.Where(r => r.UnitId == unitId.Value);
@@ -179,19 +144,10 @@ namespace CondoAdmin.API.Controllers
 
             var requests = await query
                 .AsNoTracking()
-                .Select(r => new ListMaintenanceOutput
-                {
-                    Id = r.Id,
-                    Title = r.Title,
-                    Description = r.Description,
-                    UnitNumber = r.Unit.UnitNumber,
-                    CreatedAt = r.CreatedAt,
-                    ResolvedAt = r.ResolvedAt
-                })
                 .OrderBy(r => r.CreatedAt)
                 .ToListAsync();
 
-            return Ok(requests);
+            return Ok(_mapper.Map<ICollection<ListMaintenanceOutput>>(requests));
         }
     }
 }
