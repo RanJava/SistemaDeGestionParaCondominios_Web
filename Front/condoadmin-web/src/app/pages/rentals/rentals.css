@@ -1,0 +1,345 @@
+.rentals-page {
+  padding: 0;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.75rem;
+}
+
+.page-header h2 {
+  margin-bottom: 0.25rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.badge {
+  background: var(--primary-50);
+  color: var(--primary-700);
+  padding: 0.35rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.btn-new {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.625rem 1.25rem;
+  background: var(--primary-500);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--shadow-1);
+  transition: var(--transition);
+}
+
+.btn-new:hover {
+  background: var(--primary-600);
+  box-shadow: var(--shadow-2);
+}
+
+/* Resumen financiero */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.75rem;
+}
+
+.summary-card {
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: var(--shadow-1);
+}
+
+.summary-card.debt {
+  background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+  border-left: 4px solid var(--error);
+}
+
+.summary-card.credit {
+  background: linear-gradient(135deg, #E8F5E9, #C8E6C9);
+  border-left: 4px solid var(--success);
+}
+
+.summary-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.summary-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Filtros */
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.75rem;
+  background: var(--surface);
+  padding: 0.4rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-1);
+  width: fit-content;
+}
+
+.filter-tabs button {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.filter-tabs button.active {
+  background: var(--primary-500);
+  color: white;
+  box-shadow: var(--shadow-1);
+  font-weight: 600;
+}
+
+.filter-tabs button:not(.active):hover {
+  background: var(--primary-50);
+  color: var(--primary-600);
+}
+
+/* Lista */
+.rentals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.rental-card {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-1);
+  transition: var(--transition);
+}
+
+.rental-card:hover {
+  box-shadow: var(--shadow-2);
+}
+
+.rental-card.terminated {
+  opacity: 0.65;
+}
+
+/* Header de la tarjeta */
+.rental-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.rental-title {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.unit-badge {
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: var(--shadow-1);
+  min-width: 60px;
+  text-align: center;
+}
+
+.tenant-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.building-name {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 0.15rem;
+}
+
+.rental-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.status-badge {
+  padding: 0.3rem 0.9rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.status-badge.active     { background: #E8F5E9; color: #2E7D32; }
+.status-badge.terminated { background: var(--gray-100); color: var(--gray-600); }
+.status-badge.cancelled  { background: #FFEBEE; color: #C62828; }
+
+.btn-pay {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: var(--success);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: var(--shadow-1);
+  transition: var(--transition);
+}
+
+.btn-pay:hover {
+  background: #388E3C;
+  box-shadow: var(--shadow-2);
+}
+
+.btn-pay .material-icons-round {
+  font-size: 1rem;
+}
+
+/* Progreso */
+.progress-section {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--gray-200);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-400), var(--primary-600));
+  border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.progress-pct {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 0.4rem;
+  display: block;
+}
+
+/* Financieros */
+.rental-financials {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0;
+}
+
+.financial-item {
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  border-right: 1px solid var(--gray-100);
+}
+
+.financial-item:last-child {
+  border-right: none;
+}
+
+.financial-item.has-debt .fin-value {
+  color: var(--error);
+  font-weight: 700;
+}
+
+.financial-item.has-credit .fin-value {
+  color: var(--success);
+  font-weight: 700;
+}
+
+.fin-label {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.fin-value {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Estados */
+.loading, .empty {
+  text-align: center;
+  padding: 4rem;
+  color: var(--text-secondary);
+}
+
+.error-box {
+  background: #FFEBEE;
+  border-left: 4px solid var(--error);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.5rem;
+  color: #C62828;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-badge.expired {
+  background: #FFF3E0;
+  color: #E65100;
+}

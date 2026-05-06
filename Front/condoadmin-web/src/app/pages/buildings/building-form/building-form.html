@@ -1,0 +1,77 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+  <!-- Campo: Nombre -->
+  <div class="form-group">
+    <label for="name">Nombre del edificio *</label>
+    <input
+      id="name"
+      type="text"
+      formControlName="name"
+      placeholder="Ej: Torre Central"
+      [class.invalid]="f['name'].invalid && f['name'].touched"
+    />
+    @if (f['name'].invalid && f['name'].touched) {
+      <span class="error-msg">
+        @if (f['name'].errors?.['required']) { El nombre es requerido. }
+        @if (f['name'].errors?.['minlength']) { Mínimo 3 caracteres. }
+      </span>
+    }
+  </div>
+
+  <!-- Campo: Dirección -->
+  <div class="form-group">
+    <label for="address">Dirección *</label>
+    <input
+      id="address"
+      type="text"
+      formControlName="address"
+      placeholder="Ej: Av. Arce 2345"
+      [class.invalid]="f['address'].invalid && f['address'].touched"
+    />
+    @if (f['address'].invalid && f['address'].touched) {
+      <span class="error-msg">La dirección es requerida.</span>
+    }
+  </div>
+
+  <!-- Campo: Ciudad -->
+  <div class="form-group">
+    <label for="city">Ciudad *</label>
+    <input
+      id="city"
+      type="text"
+      formControlName="city"
+      placeholder="Ej: La Paz"
+      [class.invalid]="f['city'].invalid && f['city'].touched"
+    />
+    @if (f['city'].invalid && f['city'].touched) {
+      <span class="error-msg">La ciudad es requerida.</span>
+    }
+  </div>
+
+  <!-- Campo: Total Unidades -->
+  <div class="form-group">
+    <label for="totalUnits">Total de unidades</label>
+    <input
+      id="totalUnits"
+      type="number"
+      formControlName="totalUnits"
+      min="0"
+    />
+  </div>
+
+  <!-- Error general -->
+  @if (error) {
+    <div class="error-box">⚠️ {{ error }}</div>
+  }
+
+  <!-- Acciones -->
+  <div class="form-actions">
+    <button type="button" class="btn-cancel" (click)="cancel.emit()">
+      Cancelar
+    </button>
+    <button type="submit" class="btn-save" [disabled]="saving">
+      {{ saving ? 'Guardando...' : 'Guardar edificio' }}
+    </button>
+  </div>
+
+</form>

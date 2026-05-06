@@ -1,0 +1,69 @@
+<div class="buildings-page">
+  <div class="page-header">
+    <div>
+      <h2>Edificios</h2>
+      <p class="subtitle">Gestión de edificios del condominio</p>
+    </div>
+    <div class="header-actions">
+      <span class="badge">{{ buildings().length }} registros</span>
+      <button class="btn-new" (click)="showModal.set(true)">
+        <span class="material-icons-round" style="font-size:1rem">add</span>
+        Nuevo edificio
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-box">
+      <p>⚠️ {{ error() }}</p>
+      <button (click)="loadBuildings()">Reintentar</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    <div class="buildings-grid">
+      @for (building of buildings(); track building.id) {
+        <div class="building-card" [class.inactive]="!building.isActive">
+          <div class="building-card-top">
+            <span class="building-name">{{ building.name }}</span>
+            @if (building.isActive) {
+              <span class="status active">Activo</span>
+            } @else {
+              <span class="status inactive">Inactivo</span>
+            }
+          </div>
+          <div class="building-card-body">
+            <div class="building-info-row">
+              <span class="material-icons-round">location_on</span>
+              {{ building.address }}
+            </div>
+            <div class="building-info-row">
+              <span class="material-icons-round">location_city</span>
+              {{ building.city }}
+            </div>
+          </div>
+          <div class="building-card-footer">
+            <span class="material-icons-round">meeting_room</span>
+            {{ building.totalUnits }} unidades
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<app-modal
+  title="Nuevo edificio"
+  [isOpen]="showModal()"
+  (closed)="showModal.set(false)">
+  <app-building-form
+    (saved)="onBuildingSaved()"
+    (cancel)="showModal.set(false)">
+  </app-building-form>
+</app-modal>

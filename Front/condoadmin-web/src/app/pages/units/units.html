@@ -1,0 +1,127 @@
+<div class="units-page">
+  <div class="page-header">
+    <div>
+      <h2>Unidades</h2>
+      <p class="subtitle">Gestión de unidades por edificio</p>
+    </div>
+    <div class="header-actions">
+      <span class="badge">{{ filteredUnits().length }} unidades</span>
+      <button class="btn-secondary" (click)="showUnitModal.set(true)">
+        <span class="material-icons-round" style="font-size:1rem">add</span>
+        Nueva unidad
+      </button>
+      <button class="btn-new" (click)="showSaleModal.set(true)">
+        <span class="material-icons-round" style="font-size:1rem">sell</span>
+        Registrar venta
+      </button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <select (change)="filterByBuilding($event)">
+      <option value="">Todos los edificios</option>
+      @for (building of buildings(); track building.id) {
+        <option [value]="building.name">{{ building.name }}</option>
+      }
+    </select>
+
+    <select (change)="filterByStatus($event)">
+      <option value="">Todos los estados</option>
+      <option value="Available">Disponible</option>
+      <option value="Sold">Vendida</option>
+      <option value="Rented">Alquilada</option>
+    </select>
+
+    @if (selectedBuildingName() !== null || selectedStatus() !== null) {
+      <button class="btn-clear" (click)="clearFilters()">
+        <span class="material-icons-round" style="font-size:0.9rem">close</span>
+        Limpiar filtros
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div></div>
+  }
+
+  @if (error()) {
+    <div class="error-box">
+      <p>⚠️ {{ error() }}</p>
+      <button (click)="loadUnits()">Reintentar</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    @if (filteredUnits().length === 0) {
+      <div class="empty">
+        <p>No hay unidades que coincidan con los filtros.</p>
+      </div>
+    } @else {
+      <div class="units-grid">
+        @for (unit of filteredUnits(); track unit.id) {
+          <div class="unit-card">
+            <div class="unit-header">
+              <div class="unit-number">
+                <span class="label">Unidad</span>
+                <span class="number">{{ unit.unitNumber }}</span>
+              </div>
+              <span class="status-badge {{ statusColors[unit.status] }}">
+                {{ statusLabels[unit.status] }}
+              </span>
+            </div>
+
+            <div class="unit-info">
+              <div class="info-row">
+                <span class="info-label">
+                  <span class="material-icons-round">business</span>
+                  Edificio
+                </span>
+                <span>{{ unit.buildingName }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">
+                  <span class="material-icons-round">straighten</span>
+                  Área
+                </span>
+                <span>{{ unit.areaM2 }} m²</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">
+                  <span class="material-icons-round">layers</span>
+                  Piso
+                </span>
+                <span>{{ unit.floor }}°</span>
+              </div>
+            </div>
+
+            <div class="unit-footer">
+              <span class="fee">Bs. {{ unit.monthlyFee }}/mes</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal nueva unidad -->
+<app-modal
+  title="Nueva unidad"
+  [isOpen]="showUnitModal()"
+  (closed)="showUnitModal.set(false)">
+  <app-unit-form
+    (saved)="onUnitSaved()"
+    (cancel)="showUnitModal.set(false)">
+  </app-unit-form>
+</app-modal>
+
+<!-- Modal registrar venta -->
+<app-modal
+  title="Registrar venta"
+  [isOpen]="showSaleModal()"
+  (closed)="showSaleModal.set(false)">
+  <app-sale-form
+    (saved)="onSaleSaved()"
+    (cancel)="showSaleModal.set(false)">
+  </app-sale-form>
+</app-modal>

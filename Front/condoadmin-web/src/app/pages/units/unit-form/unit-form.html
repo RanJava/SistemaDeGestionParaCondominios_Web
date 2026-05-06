@@ -1,0 +1,68 @@
+<form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Número de unidad *</label>
+      <input formControlName="unitNumber" type="text" placeholder="Ej: 301"
+        [class.invalid]="f['unitNumber'].invalid && f['unitNumber'].touched"/>
+      @if (f['unitNumber'].invalid && f['unitNumber'].touched) {
+        <span class="error-msg">Requerido.</span>
+      }
+    </div>
+    <div class="form-group">
+      <label>Piso *</label>
+      <input formControlName="floor" type="number" min="1"
+        [class.invalid]="f['floor'].invalid && f['floor'].touched"/>
+      @if (f['floor'].invalid && f['floor'].touched) {
+        <span class="error-msg">Mínimo piso 1.</span>
+      }
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Área (m²) *</label>
+      <input formControlName="areaM2" type="number" min="1" step="0.5"
+        [class.invalid]="f['areaM2'].invalid && f['areaM2'].touched"/>
+      @if (f['areaM2'].invalid && f['areaM2'].touched) {
+        <span class="error-msg">Debe ser mayor a 0.</span>
+      }
+    </div>
+    <div class="form-group">
+      <label>Expensa mensual (Bs.) *</label>
+      <input formControlName="monthlyFee" type="number" min="1"
+        [class.invalid]="f['monthlyFee'].invalid && f['monthlyFee'].touched"/>
+      @if (f['monthlyFee'].invalid && f['monthlyFee'].touched) {
+        <span class="error-msg">Debe ser mayor a 0.</span>
+      }
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Edificio *</label>
+    <select formControlName="buildingId"
+      [class.invalid]="f['buildingId'].invalid && f['buildingId'].touched">
+      <option value="">Seleccionar edificio</option>
+      @for (building of buildings; track building.id) {
+        <option [value]="building.id">
+          {{ building.name }} — {{ building.city }}
+        </option>
+      }
+    </select>
+    @if (f['buildingId'].invalid && f['buildingId'].touched) {
+      <span class="error-msg">Selecciona un edificio.</span>
+    }
+  </div>
+
+  @if (error) {
+    <div class="error-box">⚠️ {{ error }}</div>
+  }
+
+  <div class="form-actions">
+    <button type="button" class="btn-cancel" (click)="cancel.emit()">Cancelar</button>
+    <button type="submit" class="btn-save" [disabled]="saving">
+      {{ saving ? 'Guardando...' : 'Crear unidad' }}
+    </button>
+  </div>
+
+</form>

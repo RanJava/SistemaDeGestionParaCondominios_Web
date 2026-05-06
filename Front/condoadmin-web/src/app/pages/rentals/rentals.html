@@ -1,0 +1,151 @@
+<div class="rentals-page">
+  <div class="page-header">
+    <div>
+      <h2>Alquileres</h2>
+      <p class="subtitle">Contratos de arrendamiento activos e históricos</p>
+    </div>
+    <div class="header-actions">
+      <span class="badge">{{ filteredRentals().length }} contratos</span>
+      <button class="btn-new" (click)="showModal.set(true)">
+        <span class="material-icons-round" style="font-size:1rem">add</span>
+        Nuevo contrato
+      </button>
+    </div>
+  </div>
+
+  @if (!loading() && !error() && rentals().length > 0) {
+    <div class="summary-cards">
+      <div class="summary-card debt">
+        <span class="summary-label">Deuda total pendiente</span>
+        <span class="summary-value">Bs. {{ totalDebt() | number:'1.2-2' }}</span>
+      </div>
+      <div class="summary-card credit">
+        <span class="summary-label">Saldo a favor total</span>
+        <span class="summary-value">Bs. {{ totalCreditBalance() | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  }
+
+  <div class="filter-tabs">
+    <button [class.active]="filter() === 'all'"        (click)="setFilter('all')">Todos</button>
+    <button [class.active]="filter() === 'active'"     (click)="setFilter('active')">Activos</button>
+    <button [class.active]="filter() === 'terminated'" (click)="setFilter('terminated')">Terminados</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div></div>
+  }
+
+  @if (error()) {
+    <div class="error-box">
+      <p>⚠️ {{ error() }}</p>
+      <button (click)="loadRentals()">Reintentar</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    @if (filteredRentals().length === 0) {
+      <div class="empty">
+        <p>No hay contratos con el filtro seleccionado.</p>
+      </div>
+    } @else {
+      <div class="rentals-list">
+        @for (rental of filteredRentals(); track rental.id) {
+          <div class="rental-card" [class.terminated]="rental.status !== 'Active'">
+
+            <div class="rental-header">
+              <div class="rental-title">
+                <span class="unit-badge">{{ rental.unitNumber }}</span>
+                <div>
+                  <div class="tenant-name">{{ rental.tenantName }}</div>
+                  <div class="building-name">{{ rental.buildingName }}</div>
+                </div>
+              </div>
+              <div class="rental-header-right">
+                <!-- El status badge — cambia la línea del [class] y el texto -->
+<span class="status-badge" [class]="isExpired(rental.status, rental.endDate) ? 'expired' : rental.status.toLowerCase()">
+  {{ getStatusLabel(rental.status, rental.endDate) }}
+</span>
+
+<!-- El botón de pago — ocultarlo si está vencido -->
+@if (rental.status === 'Active' && !isExpired(rental.status, rental.endDate)) {
+  <button class="btn-pay" (click)="openPayment(rental)">
+    <span class="material-icons-round">payments</span>
+    Registrar pago
+  </button>
+}
+              </div>
+            </div>
+
+            <div class="progress-section">
+              <div class="progress-labels">
+                <span>{{ rental.startDate | date:'dd/MM/yyyy' }}</span>
+                <span>{{ rental.endDate | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill"
+                  [style.width.%]="getContractProgress(rental.startDate, rental.endDate)">
+                </div>
+              </div>
+              <span class="progress-pct">
+                {{ getContractProgress(rental.startDate, rental.endDate) }}% transcurrido
+              </span>
+            </div>
+
+            <div class="rental-financials">
+              <div class="financial-item">
+                <span class="fin-label">Renta mensual</span>
+                <span class="fin-value">Bs. {{ rental.monthlyRent | number:'1.2-2' }}</span>
+              </div>
+              <div class="financial-item">
+                <span class="fin-label">Depósito</span>
+                <span class="fin-value">Bs. {{ rental.depositAmount | number:'1.2-2' }}</span>
+              </div>
+              <div class="financial-item" [class.has-debt]="rental.totalDebt > 0">
+                <span class="fin-label">Deuda pendiente</span>
+                <span class="fin-value">
+                  {{ rental.pendingMonths }} mes(es) — Bs. {{ rental.totalDebt | number:'1.2-2' }}
+                </span>
+              </div>
+              @if (rental.creditBalance > 0) {
+                <div class="financial-item has-credit">
+                  <span class="fin-label">Saldo a favor</span>
+                  <span class="fin-value">Bs. {{ rental.creditBalance | number:'1.2-2' }}</span>
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- Modal nuevo contrato -->
+<app-modal
+  title="Nuevo contrato de alquiler"
+  [isOpen]="showModal()"
+  (closed)="showModal.set(false)">
+  <app-rental-form
+    (saved)="onRentalSaved()"
+    (cancel)="showModal.set(false)">
+  </app-rental-form>
+</app-modal>
+
+<!-- Modal registrar pago -->
+@if (selectedRental) {
+  <app-modal
+    title="Registrar pago — {{ selectedRental.tenantName }}"
+    [isOpen]="showPaymentModal()"
+    (closed)="showPaymentModal.set(false)">
+    <app-payment-form
+      [contractId]="selectedRental.id"
+      [tenantName]="selectedRental.tenantName"
+      [unitNumber]="selectedRental.unitNumber"
+      [monthlyRent]="selectedRental.monthlyRent"
+      (saved)="onPaymentSaved()"
+      (cancel)="showPaymentModal.set(false)">
+    </app-payment-form>
+  </app-modal>
+}

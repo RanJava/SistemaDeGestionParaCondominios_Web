@@ -1,0 +1,82 @@
+<div class="residents-page">
+  <div class="page-header">
+    <div>
+      <h2>Residentes</h2>
+      <p class="subtitle">Propietarios e inquilinos registrados</p>
+    </div>
+    <span class="badge">{{ filteredResidents().length }} residentes</span>
+  </div>
+
+  <div class="search-bar">
+    <span class="material-icons-round search-icon">search</span>
+    <input
+      type="text"
+      placeholder="Buscar por nombre o DNI..."
+      [value]="search()"
+      (input)="updateSearch($event)"
+    />
+    @if (search()) {
+      <button class="btn-clear-search" (click)="search.set('')">
+        <span class="material-icons-round" style="font-size:1.1rem">close</span>
+      </button>
+    }
+  </div>
+
+  @if (loading()) {
+    <div class="loading"><div class="spinner"></div></div>
+  }
+
+  @if (error()) {
+    <div class="error-box">
+      <p>⚠️ {{ error() }}</p>
+      <button (click)="loadResidents()">Reintentar</button>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    @if (filteredResidents().length === 0) {
+      <div class="empty">
+        <p>No se encontraron residentes con "{{ search() }}".</p>
+      </div>
+    } @else {
+      <div class="residents-list">
+        @for (resident of filteredResidents(); track resident.id) {
+          <div class="resident-card">
+
+            <div class="avatar">
+              {{ getInitials(resident.fullName) }}
+            </div>
+
+            <div class="resident-info">
+              <div class="resident-name">{{ resident.fullName }}</div>
+              <div class="resident-details">
+                <span>
+                  <span class="material-icons-round">badge</span>
+                  {{ resident.dni }}
+                </span>
+                <span>
+                  <span class="material-icons-round">email</span>
+                  {{ resident.email }}
+                </span>
+                <span>
+                  <span class="material-icons-round">phone</span>
+                  {{ resident.phone }}
+                </span>
+              </div>
+            </div>
+
+            <div class="resident-unit">
+              @if (resident.unitNumber !== 'Sin unidad') {
+                <span class="unit-label">Unidad</span>
+                <span class="unit-value">{{ resident.unitNumber }}</span>
+              } @else {
+                <span class="no-unit">Sin unidad asignada</span>
+              }
+            </div>
+
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

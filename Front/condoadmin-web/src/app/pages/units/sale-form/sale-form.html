@@ -1,0 +1,151 @@
+<!-- Vista de resultado exitoso -->
+@if (result) {
+  <div class="result">
+    <div class="result-icon">✅</div>
+    <h3>Venta registrada exitosamente</h3>
+    <div class="result-details">
+      <p><strong>Comprador:</strong> {{ result.buyer }}</p>
+      <p><strong>DNI:</strong> {{ result.dni }}</p>
+      <p><strong>Método de pago:</strong> {{ result.methodOfPayment }}</p>
+      <p><strong>Total:</strong> Bs. {{ result.total | number:'1.2-2' }}</p>
+    </div>
+    <div class="result-units">
+      <h4>Unidades vendidas:</h4>
+      @for (unit of result.units; track unit.unitNumber) {
+        <div class="result-unit">
+          <span>{{ unit.nameBuilding }} — Unidad {{ unit.unitNumber }}</span>
+          <span>Bs. {{ unit.salePrice | number:'1.2-2' }}</span>
+        </div>
+      }
+    </div>
+    <button class="btn-save" (click)="close()">Cerrar</button>
+  </div>
+}
+
+<!-- Formulario de venta -->
+@if (!result) {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <!-- Sección: Datos del comprador -->
+    <div class="section-title">Datos del comprador</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input formControlName="firstName" type="text" placeholder="Ej: Carlos"
+          [class.invalid]="f['firstName'].invalid && f['firstName'].touched"/>
+        @if (f['firstName'].invalid && f['firstName'].touched) {
+          <span class="error-msg">Requerido.</span>
+        }
+      </div>
+      <div class="form-group">
+        <label>Apellido *</label>
+        <input formControlName="lastName" type="text" placeholder="Ej: Mamani"
+          [class.invalid]="f['lastName'].invalid && f['lastName'].touched"/>
+        @if (f['lastName'].invalid && f['lastName'].touched) {
+          <span class="error-msg">Requerido.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>DNI *</label>
+        <input formControlName="dni" type="text" placeholder="Ej: 12345678"
+          [class.invalid]="f['dni'].invalid && f['dni'].touched"/>
+        @if (f['dni'].invalid && f['dni'].touched) {
+          <span class="error-msg">Requerido.</span>
+        }
+      </div>
+      <div class="form-group">
+        <label>Teléfono *</label>
+        <input formControlName="phone" type="text" placeholder="Ej: 77712345"
+          [class.invalid]="f['phone'].invalid && f['phone'].touched"/>
+        @if (f['phone'].invalid && f['phone'].touched) {
+          <span class="error-msg">Requerido.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Email *</label>
+        <input formControlName="email" type="email" placeholder="Ej: correo@email.com"
+          [class.invalid]="f['email'].invalid && f['email'].touched"/>
+        @if (f['email'].invalid && f['email'].touched) {
+          <span class="error-msg">Email inválido.</span>
+        }
+      </div>
+      <div class="form-group">
+        <label>Método de pago *</label>
+        <select formControlName="methodOfPayment">
+          <option value="Efectivo">Efectivo</option>
+          <option value="Transferencia">Transferencia</option>
+          <option value="Financiamiento">Financiamiento</option>
+          <option value="Cheque">Cheque</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Sección: Unidades -->
+    <div class="section-title">
+      Unidades a vender
+      <button type="button" class="btn-add" (click)="addUnit()">+ Agregar unidad</button>
+    </div>
+
+    @if (loading) {
+      <p class="loading-units">Cargando unidades disponibles...</p>
+    }
+
+    <div formArrayName="details">
+      @for (detail of details.controls; track $index) {
+        <div [formGroupName]="$index" class="unit-row">
+          <div class="form-group">
+            <label>Unidad *</label>
+            <select formControlName="unitNumber"
+              (change)="onUnitSelected($index, $event)"
+              [class.invalid]="detail.get('unitNumber')?.invalid && detail.get('unitNumber')?.touched">
+              <option value="">Seleccionar unidad</option>
+              @for (unit of availableUnits; track unit.id) {
+  <option [value]="unit.unitNumber">
+    {{ unit.unitNumber }} — {{ unit.buildingName }} (Piso {{ unit.floor }})
+  </option>
+}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Precio (Bs.) *</label>
+            <input formControlName="price" type="number" min="1" placeholder="0"
+              [class.invalid]="detail.get('price')?.invalid && detail.get('price')?.touched"/>
+          </div>
+
+          <div class="form-group">
+            <label>Notas</label>
+            <input formControlName="notes" type="text" placeholder="Opcional"/>
+          </div>
+
+          <input formControlName="nameBuilding" type="hidden"/>
+
+          @if (details.length > 1) {
+            <button type="button" class="btn-remove" (click)="removeUnit($index)">✕</button>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Error general -->
+    @if (error) {
+      <div class="error-box">⚠️ {{ error }}</div>
+    }
+
+    <!-- Acciones -->
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="cancel.emit()">Cancelar</button>
+      <button type="submit" class="btn-save" [disabled]="saving">
+        {{ saving ? 'Registrando...' : 'Registrar venta' }}
+      </button>
+    </div>
+
+  </form>
+}

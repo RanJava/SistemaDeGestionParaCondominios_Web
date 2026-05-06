@@ -1,0 +1,145 @@
+<div class="dashboard-page">
+  <div class="page-header">
+    <div>
+      <h2>Dashboard</h2>
+      <p class="subtitle">Bienvenido al sistema de administración</p>
+    </div>
+    <div class="city">
+      <span class="material-icons-round" style="font-size:1rem">location_on</span>
+      {{ city }}
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="error-box">⚠️ {{ error() }}</div>
+  }
+
+  @if (data(); as d) {
+    <div class="stats-grid">
+      <a routerLink="/buildings" class="stat-card">
+        <div class="stat-icon" style="background:#E8EAF6">
+          <span class="material-icons-round" style="color:#3F51B5">business</span>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ d.buildings.total }}</span>
+          <span class="stat-label">Edificios</span>
+          <span class="stat-sub">{{ d.buildings.active }} activos</span>
+        </div>
+        <span class="material-icons-round stat-arrow">arrow_forward</span>
+      </a>
+
+      <a routerLink="/units" class="stat-card">
+        <div class="stat-icon" style="background:#E8F5E9">
+          <span class="material-icons-round" style="color:#43A047">meeting_room</span>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ d.units.total }}</span>
+          <span class="stat-label">Unidades</span>
+          <span class="stat-sub">{{ d.units.available }} disp · {{ d.units.rented }} alq</span>
+        </div>
+        <span class="material-icons-round stat-arrow">arrow_forward</span>
+      </a>
+
+      <a routerLink="/residents" class="stat-card">
+        <div class="stat-icon" style="background:#FFF3E0">
+          <span class="material-icons-round" style="color:#FB8C00">people</span>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ d.residents.total }}</span>
+          <span class="stat-label">Residentes</span>
+          <span class="stat-sub">{{ d.residents.active }} activos</span>
+        </div>
+        <span class="material-icons-round stat-arrow">arrow_forward</span>
+      </a>
+
+      <a routerLink="/rentals" class="stat-card">
+        <div class="stat-icon" style="background:#F3E5F5">
+          <span class="material-icons-round" style="color:#8E24AA">description</span>
+        </div>
+        <div class="stat-info">
+          <span class="stat-value">{{ d.units.rented }}</span>
+          <span class="stat-label">Contratos activos</span>
+          <span class="stat-sub">{{ d.units.available }} unidades libres</span>
+        </div>
+        <span class="material-icons-round stat-arrow">arrow_forward</span>
+      </a>
+    </div>
+
+    <div class="alerts-grid">
+      @if (d.payments.pendingCount > 0) {
+        <div class="alert-card warning">
+          <div class="alert-icon">
+            <span class="material-icons-round">payment</span>
+          </div>
+          <div class="alert-info">
+            <span class="alert-title">Pagos pendientes</span>
+            <span class="alert-detail">
+              {{ d.payments.pendingCount }} cuotas vencidas —
+              Bs. {{ d.payments.totalDebt | number:'1.2-2' }}
+            </span>
+          </div>
+        </div>
+      }
+
+      @if (d.maintenance.pendingCount > 0) {
+        <div class="alert-card info">
+          <div class="alert-icon">
+            <span class="material-icons-round">build</span>
+          </div>
+          <div class="alert-info">
+            <span class="alert-title">Mantenimiento pendiente</span>
+            <span class="alert-detail">
+              {{ d.maintenance.pendingCount }} solicitudes sin resolver
+            </span>
+          </div>
+        </div>
+      }
+
+      @if (d.payments.pendingCount === 0 && d.maintenance.pendingCount === 0) {
+        <div class="alert-card success">
+          <div class="alert-icon">
+            <span class="material-icons-round">check_circle</span>
+          </div>
+          <div class="alert-info">
+            <span class="alert-title">Todo al día</span>
+            <span class="alert-detail">Sin pagos ni mantenimientos pendientes</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="occupancy-section">
+      <h3>
+        <span class="material-icons-round">bar_chart</span>
+        Ocupación de unidades
+      </h3>
+      <div class="occupancy-bar-container">
+        <div class="occupancy-bar">
+          <div class="bar-sold"
+            [style.width.%]="(d.units.sold / d.units.total) * 100">
+          </div>
+          <div class="bar-rented"
+            [style.width.%]="(d.units.rented / d.units.total) * 100">
+          </div>
+        </div>
+        <div class="occupancy-legend">
+          <span class="legend-item">
+            <span class="dot sold"></span>Vendidas ({{ d.units.sold }})
+          </span>
+          <span class="legend-item">
+            <span class="dot rented"></span>Alquiladas ({{ d.units.rented }})
+          </span>
+          <span class="legend-item">
+            <span class="dot available"></span>Disponibles ({{ d.units.available }})
+          </span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

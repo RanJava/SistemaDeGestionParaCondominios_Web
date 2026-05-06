@@ -1,0 +1,160 @@
+<!-- Vista de resultado exitoso -->
+@if (result) {
+  <div class="result">
+    <div class="result-icon">✅</div>
+    <h3>Contrato registrado exitosamente</h3>
+    <div class="result-details">
+      <p><strong>Inquilino:</strong> {{ result.tenant }}</p>
+      <p><strong>DNI:</strong> {{ result.dni }}</p>
+      <p><strong>Fecha:</strong> {{ result.createdAt | date:'dd/MM/yyyy' }}</p>
+    </div>
+    <div class="result-contracts">
+      <h4>Contratos generados:</h4>
+      @for (contract of result.contracts; track contract.contractId) {
+        <div class="result-contract">
+          <div class="contract-header">
+            <span>{{ contract.buildingName }} — Unidad {{ contract.unitNumber }}</span>
+            <span class="contract-id">#{{ contract.contractId }}</span>
+          </div>
+          <div class="contract-details">
+            <span>{{ contract.startDate | date:'dd/MM/yyyy' }} → {{ contract.endDate | date:'dd/MM/yyyy' }}</span>
+            <span>{{ contract.totalMonths }} meses</span>
+            <span>Bs. {{ contract.monthlyRent | number:'1.2-2' }}/mes</span>
+            <span><strong>Total: Bs. {{ contract.totalContractValue | number:'1.2-2' }}</strong></span>
+          </div>
+        </div>
+      }
+    </div>
+    <button class="btn-save" (click)="close()">Cerrar</button>
+  </div>
+}
+
+<!-- Formulario -->
+@if (!result) {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <!-- Datos del inquilino -->
+    <div class="section-title">Datos del inquilino</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input formControlName="firstName" type="text" placeholder="Ej: María"
+          [class.invalid]="f['firstName'].invalid && f['firstName'].touched"/>
+        @if (f['firstName'].invalid && f['firstName'].touched) {
+          <span class="error-msg">Requerido.</span>
+        }
+      </div>
+      <div class="form-group">
+        <label>Apellido *</label>
+        <input formControlName="lastName" type="text" placeholder="Ej: Condori"
+          [class.invalid]="f['lastName'].invalid && f['lastName'].touched"/>
+        @if (f['lastName'].invalid && f['lastName'].touched) {
+          <span class="error-msg">Requerido.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>DNI *</label>
+        <input formControlName="dni" type="text" placeholder="Ej: 12345678"
+          [class.invalid]="f['dni'].invalid && f['dni'].touched"/>
+        @if (f['dni'].invalid && f['dni'].touched) {
+          <span class="error-msg">Requerido.</span>
+        }
+      </div>
+      <div class="form-group">
+        <label>Teléfono *</label>
+        <input formControlName="phone" type="text" placeholder="Ej: 77712345"
+          [class.invalid]="f['phone'].invalid && f['phone'].touched"/>
+        @if (f['phone'].invalid && f['phone'].touched) {
+          <span class="error-msg">Requerido.</span>
+        }
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Email *</label>
+      <input formControlName="email" type="email" placeholder="Ej: correo@email.com"
+        [class.invalid]="f['email'].invalid && f['email'].touched"/>
+      @if (f['email'].invalid && f['email'].touched) {
+        <span class="error-msg">Email inválido.</span>
+      }
+    </div>
+
+    <!-- Unidades -->
+    <div class="section-title">
+      Unidades a alquilar
+      <button type="button" class="btn-add" (click)="addUnit()">+ Agregar unidad</button>
+    </div>
+
+    @if (loading) {
+      <p class="loading-units">Cargando unidades disponibles...</p>
+    }
+
+    <div formArrayName="units">
+      @for (unit of units.controls; track $index) {
+        <div [formGroupName]="$index" class="unit-row">
+
+          <div class="unit-row-top">
+            <div class="form-group">
+              <label>Unidad *</label>
+              <select formControlName="unitNumber"
+                (change)="onUnitSelected($index, $event)"
+                [class.invalid]="unit.get('unitNumber')?.invalid && unit.get('unitNumber')?.touched">
+                <option value="">Seleccionar unidad</option>
+                @for (u of availableUnits; track u.id) {
+                  <option [value]="u.unitNumber">
+                    {{ u.unitNumber }} — {{ u.buildingName }} ({{ u.areaM2 }}m²)
+                  </option>
+                }
+              </select>
+            </div>
+
+            @if (units.length > 1) {
+              <button type="button" class="btn-remove" (click)="removeUnit($index)">✕</button>
+            }
+          </div>
+
+          <div class="unit-row-bottom">
+            <div class="form-group">
+              <label>Fecha inicio *</label>
+              <input formControlName="startDate" type="date"/>
+            </div>
+            <div class="form-group">
+              <label>Fecha fin *</label>
+              <input formControlName="endDate" type="date"/>
+            </div>
+            <div class="form-group">
+              <label>Renta mensual (Bs.) *</label>
+              <input formControlName="monthlyRent" type="number" min="1"/>
+            </div>
+            <div class="form-group">
+              <label>Depósito (Bs.)</label>
+              <input formControlName="depositAmount" type="number" min="0"/>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Notas</label>
+            <input formControlName="notes" type="text" placeholder="Opcional"/>
+          </div>
+
+        </div>
+      }
+    </div>
+
+    @if (error) {
+      <div class="error-box">⚠️ {{ error }}</div>
+    }
+
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="cancel.emit()">Cancelar</button>
+      <button type="submit" class="btn-save" [disabled]="saving">
+        {{ saving ? 'Registrando...' : 'Registrar contrato' }}
+      </button>
+    </div>
+
+  </form>
+}

@@ -1,0 +1,101 @@
+<!-- Resultado exitoso -->
+@if (result) {
+  <div class="result">
+    <div class="result-icon">✅</div>
+    <h3>Pago registrado exitosamente</h3>
+
+    <div class="result-details">
+      <p><strong>Inquilino:</strong> {{ result.tenantName }}</p>
+      <p><strong>Unidad:</strong> {{ result.unitNumber }}</p>
+      <p><strong>Monto recibido:</strong> Bs. {{ result.amountReceived | number:'1.2-2' }}</p>
+      <p><strong>Monto aplicado:</strong> Bs. {{ result.amountApplied | number:'1.2-2' }}</p>
+      @if (result.newCreditBalance > 0) {
+        <p><strong>Saldo a favor:</strong> Bs. {{ result.newCreditBalance | number:'1.2-2' }}</p>
+      }
+    </div>
+
+    @if (result.periodsPaid.length > 0) {
+      <div class="periods-paid">
+        <h4>Períodos pagados:</h4>
+        <div class="periods-list">
+          @for (period of result.periodsPaid; track period) {
+            <span class="period-badge">✓ {{ period }}</span>
+          }
+        </div>
+      </div>
+    }
+
+    <p class="result-message">{{ result.message }}</p>
+
+    <button class="btn-save" (click)="close()">Cerrar</button>
+  </div>
+}
+
+<!-- Formulario -->
+@if (!result) {
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+    <!-- Info del contrato -->
+    <div class="contract-info">
+      <div class="info-item">
+        <span class="info-label">Inquilino</span>
+        <span class="info-value">{{ tenantName }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Unidad</span>
+        <span class="info-value">{{ unitNumber }}</span>
+      </div>
+      <div class="info-item">
+        <span class="info-label">Renta mensual</span>
+        <span class="info-value">Bs. {{ monthlyRent | number:'1.2-2' }}</span>
+      </div>
+    </div>
+
+    <!-- Accesos rápidos de monto -->
+    <div class="quick-amounts">
+      <span class="quick-label">Acceso rápido:</span>
+      <button type="button" class="btn-quick" (click)="setAmount(1)">1 mes</button>
+      <button type="button" class="btn-quick" (click)="setAmount(2)">2 meses</button>
+      <button type="button" class="btn-quick" (click)="setAmount(3)">3 meses</button>
+      <button type="button" class="btn-quick" (click)="setAmount(6)">6 meses</button>
+    </div>
+
+    <!-- Monto -->
+    <div class="form-group">
+      <label>Monto a pagar (Bs.) *</label>
+      <input formControlName="amount" type="number" min="1" step="0.01"
+        [class.invalid]="f['amount'].invalid && f['amount'].touched"/>
+      @if (f['amount'].invalid && f['amount'].touched) {
+        <span class="error-msg">El monto debe ser mayor a 0.</span>
+      }
+    </div>
+
+    <!-- Método de pago -->
+    <div class="form-group">
+      <label>Método de pago *</label>
+      <select formControlName="paymentMethod">
+        @for (method of paymentMethods; track method) {
+          <option [value]="method">{{ method }}</option>
+        }
+      </select>
+    </div>
+
+    <!-- Notas -->
+    <div class="form-group">
+      <label>Notas</label>
+      <input formControlName="notes" type="text" placeholder="Opcional"/>
+    </div>
+
+    @if (error) {
+      <div class="error-box">⚠️ {{ error }}</div>
+    }
+
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" (click)="cancel.emit()">Cancelar</button>
+      <button type="submit" class="btn-save" [disabled]="saving">
+        {{ saving ? 'Registrando...' : 'Registrar pago' }}
+      </button>
+    </div>
+
+  </form>
+}
