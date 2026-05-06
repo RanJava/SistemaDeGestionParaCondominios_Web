@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace CondoAdmin.API.Controllers;
+
 public class SalesController : BaseApiController
 {
     private readonly AppDbContext _context;
@@ -127,6 +128,7 @@ public class SalesController : BaseApiController
 
         var outputDetails = new List<SaleDetailOutput>();
         decimal grandTotal = 0;
+        Unit? firstUnit = null; // Para asignar al residente al final
 
         foreach (var item in input.Details)
         {
@@ -135,9 +137,9 @@ public class SalesController : BaseApiController
 
             if (unit is null)
                 return BadRequest($"La unidad '{item.UnitNumber}' no existe.");
-            if (unit.Status != UnitStatus.Available)
-    return BadRequest($"La unidad '{item.UnitNumber}' no está disponible (estado: {unit.Status}).");
 
+            if (unit.Status != UnitStatus.Available)
+                return BadRequest($"La unidad '{item.UnitNumber}' no está disponible (estado: {unit.Status}).");
 
             var sale = new Sale
             {
@@ -153,6 +155,9 @@ public class SalesController : BaseApiController
             unit.Status = UnitStatus.Sold;
             grandTotal += sale.SalePrice;
 
+            // Guardamos la primera unidad para asignarla al residente
+            firstUnit ??= unit;
+
             outputDetails.Add(new SaleDetailOutput
             {
                 UnitNumber   = unit.UnitNumber,
@@ -162,6 +167,11 @@ public class SalesController : BaseApiController
                 NameBuilding = item.NameBuilding
             });
         }
+
+        // Asignamos la primera unidad comprada al residente
+        // para que aparezca en el listado de residentes
+        if (firstUnit is not null)
+            resident.UnitId = firstUnit.Id;
 
         await _context.SaveChangesAsync();
 
