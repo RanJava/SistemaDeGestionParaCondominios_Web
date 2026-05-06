@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CondoAdmin.API.Controllers
 {
+    //COntrolador
     public class BuildingController : BaseApiController
     {
         private readonly AppDbContext _contexto;
