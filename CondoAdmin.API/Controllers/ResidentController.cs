@@ -42,7 +42,7 @@ namespace CondoAdmin.API.Controllers
             if (resident == null)
                 return NotFound();
 
-            return Ok(_mapper.Map<ListResidentsOutput>(resident));
+            return Ok(_mapper.Map<ICollection<ListResidentsOutput>>(new List<Resident> { resident }));
         }
 
         [HttpPost]
@@ -141,23 +141,20 @@ namespace CondoAdmin.API.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<ICollection<ListResidentsOutput>>> SearchResidents(
-            [FromQuery] string? name,
-            [FromQuery] string? dni,
-            [FromQuery] bool? isActive)
+        public async Task<ActionResult<ICollection<ListResidentsOutput>>> SearchResidents([FromQuery] ResidentSearchQuery query)
         {
-            var query = _context.Residents.Include(r => r.Unit).AsQueryable();
+            var dbQuery = _context.Residents.Include(r => r.Unit).AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(name))
-                query = query.Where(r => (r.FirstName + " " + r.LastName).Contains(name));
+            if (!string.IsNullOrWhiteSpace(query.Name))
+                dbQuery = dbQuery.Where(r => (r.FirstName + " " + r.LastName).Contains(query.Name));
 
-            if (!string.IsNullOrWhiteSpace(dni))
-                query = query.Where(r => r.DNI.Contains(dni));
+            if (!string.IsNullOrWhiteSpace(query.Dni))
+                dbQuery = dbQuery.Where(r => r.DNI.Contains(query.Dni));
 
-            if (isActive.HasValue)
-                query = query.Where(r => r.IsActive == isActive.Value);
+            if (query.IsActive.HasValue)
+                dbQuery = dbQuery.Where(r => r.IsActive == query.IsActive.Value);
 
-            var residents = await query.ToListAsync();
+            var residents = await dbQuery.ToListAsync();
             return Ok(_mapper.Map<ICollection<ListResidentsOutput>>(residents));
         }
     }

@@ -353,51 +353,49 @@ public class RentalController : BaseApiController
     /// Centralizada para no duplicar la lógica en GET all y GET by id.
     /// </summary>
     private static GetRentalOutput MapToOutput(RentalContract c)
-{
-    var today = DateTime.UtcNow;
-
-    // Solo contamos como deuda los pagos cuya fecha ya venció
-    // Los meses futuros no son deuda hasta que llegue su fecha
-    var pending       = c.Payments.Where(p => p.PaidAt == null && p.DueDate <= today).ToList();
-    var rawDebt       = pending.Sum(p => p.Amount);
-    var effectiveDebt = Math.Max(0, rawDebt - c.CreditBalance);
-
-    return new GetRentalOutput
     {
-        Id            = c.Id,
-        TenantName    = $"{c.Resident.FirstName} {c.Resident.LastName}",
-        TenantDNI     = c.Resident.DNI,
-        UnitNumber    = c.Unit.UnitNumber,
-        BuildingName  = c.Unit.Building.Name,
-        StartDate     = c.StartDate,
-        EndDate       = c.EndDate,
-        MonthlyRent   = c.MonthlyRent,
-        DepositAmount = c.DepositAmount,
-        CreditBalance = c.CreditBalance,
-        Status        = c.Status.ToString(),
-        PendingMonths = pending.Count,
-        TotalDebt     = effectiveDebt
-    };
-}
+        var today = DateTime.UtcNow;
+
+        // Solo contamos como deuda los pagos cuya fecha ya venció
+        // Los meses futuros no son deuda hasta que llegue su fecha
+        var pending       = c.Payments.Where(p => p.PaidAt == null && p.DueDate <= today).ToList();
+        var rawDebt       = pending.Sum(p => p.Amount);
+        var effectiveDebt = Math.Max(0, rawDebt - c.CreditBalance);
+
+        return new GetRentalOutput
+        {
+            Id            = c.Id,
+            TenantName    = $"{c.Resident.FirstName} {c.Resident.LastName}",
+            TenantDNI     = c.Resident.DNI,
+            UnitNumber    = c.Unit.UnitNumber,
+            BuildingName  = c.Unit.Building.Name,
+            StartDate     = c.StartDate,
+            EndDate       = c.EndDate,
+            MonthlyRent   = c.MonthlyRent,
+            DepositAmount = c.DepositAmount,
+            CreditBalance = c.CreditBalance,
+            Status        = c.Status.ToString(),
+            PendingMonths = pending.Count,
+            TotalDebt     = effectiveDebt
+        };
+    }
 
     // GET: api/rental/filter
     [HttpGet("filter")]
-    public async Task<ActionResult<ICollection<GetRentalOutput>>> FilterRentals(
-        [FromQuery] string? status,
-        [FromQuery] int? residentId)
+    public async Task<ActionResult<ICollection<GetRentalOutput>>> FilterRentals([FromQuery] RentalFilterQuery filter)
     {
         var query = _context.RentalContracts.AsQueryable();
 
-        if (!string.IsNullOrWhiteSpace(status))
+        if (!string.IsNullOrWhiteSpace(filter.Status))
         {
-            if (Enum.TryParse<RentalContractStatus>(status, ignoreCase: true, out var parsedStatus))
+            if (Enum.TryParse<RentalContractStatus>(filter.Status, ignoreCase: true, out var parsedStatus))
                 query = query.Where(c => c.Status == parsedStatus);
             else
-                return BadRequest($"Estado '{status}' no válido. Use: Active, Terminated, Cancelled.");
+                return BadRequest($"Estado '{filter.Status}' no válido. Use: Active, Terminated, Cancelled.");
         }
 
-        if (residentId.HasValue)
-            query = query.Where(c => c.ResidentId == residentId.Value);
+        if (filter.ResidentId.HasValue)
+            query = query.Where(c => c.ResidentId == filter.ResidentId.Value);
 
         var contracts = await query
             .Include(c => c.Resident)

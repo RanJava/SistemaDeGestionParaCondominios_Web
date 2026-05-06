@@ -131,21 +131,19 @@ namespace CondoAdmin.API.Controllers
 
         // GET: api/unit/filter
         [HttpGet("filter")]
-        public async Task<ActionResult<ICollection<ListUnitOutput>>> FilterUnits(
-            [FromQuery] int? buildingId,
-            [FromQuery] string? status)
+        public async Task<ActionResult<ICollection<ListUnitOutput>>> FilterUnits([FromQuery] UnitFilterQuery filter)
         {
             var query = _contexto.Units.Include(u => u.Building).AsQueryable();
 
-            if (buildingId.HasValue)
-                query = query.Where(u => u.BuildingId == buildingId.Value);
+            if (filter.BuildingId.HasValue)
+                query = query.Where(u => u.BuildingId == filter.BuildingId.Value);
 
-            if (!string.IsNullOrWhiteSpace(status))
+            if (!string.IsNullOrWhiteSpace(filter.Status))
             {
-                if (Enum.TryParse<UnitStatus>(status, ignoreCase: true, out var parsedStatus))
+                if (Enum.TryParse<UnitStatus>(filter.Status, ignoreCase: true, out var parsedStatus))
                     query = query.Where(u => u.Status == parsedStatus);
                 else
-                    return BadRequest($"Estado '{status}' no válido. Use: Available, Sold, Rented.");
+                    return BadRequest($"Estado '{filter.Status}' no válido. Use: Available, Sold, Rented.");
             }
 
             var units = await query.AsNoTracking().ToListAsync();

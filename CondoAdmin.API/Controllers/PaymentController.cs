@@ -119,23 +119,20 @@ namespace CondoAdmin.API.Controllers
 
         // GET: api/payment/filter
         [HttpGet("filter")]
-        public async Task<ActionResult<ICollection<ListPaymentOutput>>> FilterPayments(
-            [FromQuery] int? residentId,
-            [FromQuery] bool? isPaid,
-            [FromQuery] string? month)
+        public async Task<ActionResult<ICollection<ListPaymentOutput>>> FilterPayments([FromQuery] PaymentFilterQuery filter)
         {
             var query = _contexto.Payments.Include(p => p.Resident).AsQueryable();
 
-            if (residentId.HasValue)
-                query = query.Where(p => p.ResidentId == residentId.Value);
+            if (filter.ResidentId.HasValue)
+                query = query.Where(p => p.ResidentId == filter.ResidentId.Value);
 
-            if (isPaid.HasValue)
-                query = isPaid.Value
+            if (filter.IsPaid.HasValue)
+                query = filter.IsPaid.Value
                     ? query.Where(p => p.PaidAt != null)
                     : query.Where(p => p.PaidAt == null);
 
-            if (!string.IsNullOrWhiteSpace(month))
-                query = query.Where(p => p.Month.Contains(month));
+            if (!string.IsNullOrWhiteSpace(filter.Month))
+                query = query.Where(p => p.Month.Contains(filter.Month));
 
             var payments = await query.AsNoTracking().ToListAsync();
             return Ok(_mapper.Map<ICollection<ListPaymentOutput>>(payments));
