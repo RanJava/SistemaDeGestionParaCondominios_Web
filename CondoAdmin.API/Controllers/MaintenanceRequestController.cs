@@ -128,17 +128,15 @@ namespace CondoAdmin.API.Controllers
 
         // GET: api/maintenancerequest/filter
         [HttpGet("filter")]
-        public async Task<ActionResult<ICollection<ListMaintenanceOutput>>> FilterRequests(
-            [FromQuery] int? unitId,
-            [FromQuery] bool? isResolved)
+        public async Task<ActionResult<ICollection<ListMaintenanceOutput>>> FilterRequests([FromQuery] MaintenanceRequestFilterQuery filter)
         {
             var query = _contexto.MaintenanceRequests.Include(r => r.Unit).AsQueryable();
 
-            if (unitId.HasValue)
-                query = query.Where(r => r.UnitId == unitId.Value);
+            if (filter.UnitId.HasValue)
+                query = query.Where(r => r.UnitId == filter.UnitId.Value);
 
-            if (isResolved.HasValue)
-                query = isResolved.Value
+            if (filter.IsResolved.HasValue)
+                query = filter.IsResolved.Value
                     ? query.Where(r => r.ResolvedAt != null)
                     : query.Where(r => r.ResolvedAt == null);
 

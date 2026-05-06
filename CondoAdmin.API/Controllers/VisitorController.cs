@@ -74,7 +74,7 @@ namespace CondoAdmin.API.Controllers
                 DNI = input.DNI,
                 LicensePlate = input.LicensePlate,
                 UnitId = input.UnitId,
-                EntryTime = DateTime.Now,
+                EntryTime = DateTime.UtcNow,
                 ExitTime = null
             };
 
@@ -121,7 +121,7 @@ namespace CondoAdmin.API.Controllers
             if (existing.ExitTime != null)
                 return BadRequest("El visitante ya registró su salida.");
 
-            existing.ExitTime = DateTime.Now;
+            existing.ExitTime = DateTime.UtcNow;
             await _contexto.SaveChangesAsync();
 
             return Ok(_mapper.Map<ListVisitorOutput>(existing));
@@ -129,17 +129,15 @@ namespace CondoAdmin.API.Controllers
 
         // GET: api/visitor/filter
         [HttpGet("filter")]
-        public async Task<ActionResult<ICollection<ListVisitorOutput>>> FilterVisitors(
-        [FromQuery] int? unitId,
-        [FromQuery] bool? isInside)
+        public async Task<ActionResult<ICollection<ListVisitorOutput>>> FilterVisitors([FromQuery] VisitorFilterQuery filter)
         {
             var query = _contexto.Visitors.Include(v => v.Unit).AsQueryable();
 
-            if (unitId.HasValue)
-                query = query.Where(v => v.UnitId == unitId.Value);
+            if (filter.UnitId.HasValue)
+                query = query.Where(v => v.UnitId == filter.UnitId.Value);
 
-            if (isInside.HasValue)
-                query = isInside.Value
+            if (filter.IsInside.HasValue)
+                query = filter.IsInside.Value
                     ? query.Where(v => v.ExitTime == null)
                     : query.Where(v => v.ExitTime != null);
 
