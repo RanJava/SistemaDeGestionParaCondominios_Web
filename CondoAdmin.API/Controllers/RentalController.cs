@@ -353,28 +353,32 @@ public class RentalController : BaseApiController
     /// Centralizada para no duplicar la lógica en GET all y GET by id.
     /// </summary>
     private static GetRentalOutput MapToOutput(RentalContract c)
-    {
-        var pending     = c.Payments.Where(p => p.PaidAt == null).ToList();
-        var rawDebt     = pending.Sum(p => p.Amount);
-        var effectiveDebt = Math.Max(0, rawDebt - c.CreditBalance);
+{
+    var today = DateTime.UtcNow;
 
-        return new GetRentalOutput
-        {
-            Id            = c.Id,
-            TenantName    = $"{c.Resident.FirstName} {c.Resident.LastName}",
-            TenantDNI     = c.Resident.DNI,
-            UnitNumber    = c.Unit.UnitNumber,
-            BuildingName  = c.Unit.Building.Name,
-            StartDate     = c.StartDate,
-            EndDate       = c.EndDate,
-            MonthlyRent   = c.MonthlyRent,
-            DepositAmount = c.DepositAmount,
-            CreditBalance = c.CreditBalance,
-            Status        = c.Status.ToString(),
-            PendingMonths = pending.Count,
-            TotalDebt     = effectiveDebt
-        };
-    }
+    // Solo contamos como deuda los pagos cuya fecha ya venció
+    // Los meses futuros no son deuda hasta que llegue su fecha
+    var pending       = c.Payments.Where(p => p.PaidAt == null && p.DueDate <= today).ToList();
+    var rawDebt       = pending.Sum(p => p.Amount);
+    var effectiveDebt = Math.Max(0, rawDebt - c.CreditBalance);
+
+    return new GetRentalOutput
+    {
+        Id            = c.Id,
+        TenantName    = $"{c.Resident.FirstName} {c.Resident.LastName}",
+        TenantDNI     = c.Resident.DNI,
+        UnitNumber    = c.Unit.UnitNumber,
+        BuildingName  = c.Unit.Building.Name,
+        StartDate     = c.StartDate,
+        EndDate       = c.EndDate,
+        MonthlyRent   = c.MonthlyRent,
+        DepositAmount = c.DepositAmount,
+        CreditBalance = c.CreditBalance,
+        Status        = c.Status.ToString(),
+        PendingMonths = pending.Count,
+        TotalDebt     = effectiveDebt
+    };
+}
 
     // GET: api/rental/filter
     [HttpGet("filter")]
