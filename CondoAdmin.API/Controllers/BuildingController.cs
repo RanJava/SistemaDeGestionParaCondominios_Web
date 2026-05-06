@@ -1,3 +1,4 @@
+using AutoMapper;
 using CondoAdmin.Application.DTO.Building.AddBuilding;
 using CondoAdmin.Application.DTO.Building.ListBuilding;
 using CondoAdmin.Application.DTO.Building.UpdateBuilding;
@@ -11,57 +12,37 @@ namespace CondoAdmin.API.Controllers
     public class BuildingController : BaseApiController
     {
         private readonly AppDbContext _contexto;
+        private readonly IMapper _mapper;
 
-        public BuildingController(AppDbContext contexto)
+        public BuildingController(AppDbContext contexto, IMapper mapper)
         {
             _contexto = contexto;
+            _mapper = mapper;
         }
 
-        // GET: api/building
         [HttpGet]
         public async Task<ActionResult<ICollection<ListBuildingOutput>>> GetBuildings()
         {
             var buildings = await _contexto.Buildings
                 .AsNoTracking()
-                .Select(b => new ListBuildingOutput
-                {
-                    Id = b.Id,
-                    Name = b.Name,
-                    Address = b.Address,
-                    City = b.City,
-                    TotalUnits = b.TotalUnits,
-                    IsActive = b.IsActive
-                })
                 .ToListAsync();
 
-            return Ok(buildings);
+            return Ok(_mapper.Map<ICollection<ListBuildingOutput>>(buildings));
         }
 
-        // GET: api/building/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<ListBuildingOutput>> GetBuilding(int id)
         {
             var building = await _contexto.Buildings
                 .AsNoTracking()
-                .Where(b => b.Id == id)
-                .Select(b => new ListBuildingOutput
-                {
-                    Id = b.Id,
-                    Name = b.Name,
-                    Address = b.Address,
-                    City = b.City,
-                    TotalUnits = b.TotalUnits,
-                    IsActive = b.IsActive
-                })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(b => b.Id == id);
 
             if (building == null)
                 return NotFound();
 
-            return Ok(building);
+            return Ok(_mapper.Map<ListBuildingOutput>(building));
         }
 
-        // POST: api/building
         [HttpPost]
         public async Task<ActionResult<AddBuildingOutput>> CreateBuilding([FromBody] AddBuildingInput input)
         {
@@ -78,19 +59,10 @@ namespace CondoAdmin.API.Controllers
             _contexto.Buildings.Add(building);
             await _contexto.SaveChangesAsync();
 
-            var output = new AddBuildingOutput
-            {
-                Id = building.Id,
-                Name = building.Name,
-                Address = building.Address,
-                City = building.City,
-                TotalUnits = building.TotalUnits
-            };
-
+            var output = _mapper.Map<AddBuildingOutput>(building);
             return CreatedAtAction(nameof(GetBuilding), new { id = building.Id }, output);
         }
 
-        // PUT: api/building/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBuilding(int id, [FromBody] UpdateBuildingInput input)
         {
